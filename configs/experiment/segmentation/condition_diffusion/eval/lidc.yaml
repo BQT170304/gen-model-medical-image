@@ -1,0 +1,55 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/eval.py experiment=segmentation/condition_diffusion/eval/lidc
+
+defaults:
+  - override /data: lidc.yaml
+  - override /model: diffusion/condition_diffusion_module.yaml
+  - override /callbacks: segmentation_diffusion.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "segmentation_diffusion/eval"
+
+trainer:
+  devices: 1
+
+data:
+  batch_size: 256
+  num_workers: 10
+  image_size: 64
+
+model:
+  net:
+    denoise_net:
+      channel_multipliers: [1, 2, 4, 4]
+      d_cond_image: 1
+
+logger:
+  wandb:
+    name: "${now:%Y-%m-%d}_${now:%H-%M-%S}"
+    project: "segmentation_diffusion"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null # pass correct id to resume experiment! (if ckpt_path is not null)
+
+# passing checkpoint path is necessary for evaluation
+ckpt_path: null
+
+callbacks:
+  gen_sample:
+    grid_shape: [5, 5]
+    n_ensemble: 5
+  metrics:
+    n_ensemble: 5
+    metric_list:
+      - binary-dice
+      - binary-iou
+      - image_variance
+      - boundary_variance

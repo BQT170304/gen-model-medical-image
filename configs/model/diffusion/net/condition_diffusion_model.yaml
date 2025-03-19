@@ -1,0 +1,7 @@
+defaults:
+  - diffusion_model
+
+_target_: src.models.diffusion.net.ConditionDiffusionModel
+label_embedder: null
+image_embedder: null
+text_embedder: null

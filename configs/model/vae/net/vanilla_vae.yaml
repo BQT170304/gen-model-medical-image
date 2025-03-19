@@ -1,0 +1,34 @@
+_target_: src.models.vae.net.VanillaVAE
+
+kld_weight: 0.00025 # al_img.shape[0]/ self.num_train_images
+
+encoder:
+  _target_: src.models.components.up_down.Encoder
+
+  in_channels: 4
+  z_channels: ${model.net.latent_dims[0]}
+  base_channels: 64
+  block: Residual
+  n_layer_blocks: 1
+  drop_rate: 0.1
+  channel_multipliers: [1, 2, 4]
+  attention: Attention
+  n_attention_heads: null
+  n_attention_layers: null
+  double_z: true
+
+decoder:
+  _target_: src.models.components.up_down.Decoder
+
+  out_channels: ${model.net.encoder.in_channels}
+  z_channels: ${model.net.latent_dims[0]}
+  base_channels: ${model.net.encoder.base_channels}
+  block: ${model.net.encoder.block}
+  n_layer_blocks: ${model.net.encoder.n_layer_blocks}
+  drop_rate: ${model.net.encoder.drop_rate}
+  channel_multipliers: ${model.net.encoder.channel_multipliers}
+  attention: ${model.net.encoder.attention}
+  n_attention_heads: ${model.net.encoder.n_attention_heads}
+  n_attention_layers: ${model.net.encoder.n_attention_layers}
+
+latent_dims: [4, 64, 64]

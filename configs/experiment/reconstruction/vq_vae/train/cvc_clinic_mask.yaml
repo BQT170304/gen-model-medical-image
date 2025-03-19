@@ -1,0 +1,56 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/train.py experiment=reconstruction/vq_vae/train/cvc_clinic_mask
+
+defaults:
+  - override /data: cvc_clinic.yaml
+  - override /model: vae/vq_vae_module.yaml
+  - override /callbacks: reconstruction.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "reconstruction_vae/train"
+
+trainer:
+  max_epochs: 50
+  devices: 1
+  check_val_every_n_epoch: 5
+  gradient_clip_val: 1.0
+
+data:
+  batch_size: 8
+  num_workers: 10
+  image_size: 256
+
+model:
+  net:
+    encoder:
+      in_channels: 1
+      base_channels: 64
+    latent_dims: [1, 64, 64]
+
+logger:
+  wandb:
+    name: "${now:%Y-%m-%d}_${now:%H-%M-%S}"
+    project: "reconstruction_vae"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null # pass correct id to resume experiment! (if ckpt_path is not null)
+
+ckpt_path: null # simply provide checkpoint path to resume training
+
+callbacks:
+  gen_sample:
+    grid_shape: [5, 5]
+  metrics:
+    metric_list:
+      - ssim
+      - psnr
+      - binary-dice
+      - binary-iou
