@@ -1,0 +1,66 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/train.py experiment=generation/latent_diffusion/train/brats2020_image
+
+defaults:
+  - override /data: brats2020.yaml
+  - override /model: diffusion/latent_diffusion_module.yaml  
+  - override /callbacks: generation.yaml
+  - override /trainer: default.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "generation_latent_diffusion/train"
+
+trainer:
+  # precision: "16-mixed"
+  max_epochs: 500
+  devices: [0]
+  accelerator: gpu
+  gradient_clip_algorithm: "value"
+  gradient_clip_val: 1
+  num_sanity_val_steps: 0
+
+data:
+  batch_size: 16
+  num_workers: 20
+  image_size: 128
+
+model:
+  use_ema: true
+  num_timesteps: 1000
+  
+  vae:
+    encoder:
+      in_channels: 4  # 4 channels for BRATS2020 dataset
+      base_channels: 64
+    latent_dims: [4, 32, 32]
+    vq_layer:
+      embedding_dim: ${model.vae.latent_dims[0]}
+      num_embeddings: 512
+  
+  optimizer:
+    lr: 1e-4
+  
+  scheduler:
+    T_max: 250
+    eta_min: 1e-7
+
+logger:
+  wandb:
+    name: "latent_diffusion_brats2020"
+    project: "generation_latent_diffusion"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null 
+
+ckpt_path: null
+
+callbacks:
+  gen_sample:
+    grid_shape: [4, 4]

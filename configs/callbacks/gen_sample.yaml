@@ -1,0 +1,6 @@
+gen_sample:
+  _target_: src.utils.callbacks.GenSample
+  grid_shape: [10, 10]
+  mean: ${data.transform_val.transforms[1].mean}
+  std: ${data.transform_val.transforms[1].std}
+  n_ensemble: null

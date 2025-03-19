@@ -1,0 +1,7 @@
+defaults:
+  - condition_diffusion_model
+
+_target_: src.models.diffusion.net.StableDiffusionModel
+
+img_dims: [3, 64, 64]
+autoencoder_weight_path: null # weight of vae

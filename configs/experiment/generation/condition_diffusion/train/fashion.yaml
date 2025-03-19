@@ -1,0 +1,52 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=generation/condition_diffusion/train/fashion
+
+defaults:
+  - override /data: fashion.yaml
+  - override /model: diffusion/condition_diffusion_module.yaml
+  - override /callbacks: generation_diffusion.yaml
+  - override /trainer: ddp.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "generation_diffusion/train"
+
+trainer:
+  max_epochs: 100
+  devices: 1
+  check_val_every_n_epoch: 5
+  gradient_clip_val: 1.0
+
+data:
+  batch_size: 128 # for 1 GPU 16G
+  num_workers: 10
+
+model:
+  scheduler:
+    warm_up_steps: 100
+  net:
+    denoise_net:
+      base_channels: 128
+      n_layer_blocks: 2
+      channel_multipliers: [1, 2, 2, 2]
+      attention_levels: [1] # resolution 16
+    label_embedder:
+      _target_: src.models.components.embeds.LabelEmbedder
+      n_classes: ${data.n_classes}
+      d_embed: ${multiply:${model.net.denoise_net.base_channels},${model.net.denoise_net.channel_multipliers[-1]}}
+
+logger:
+  wandb:
+    name: "${now:%Y-%m-%d}_${now:%H-%M-%S}"
+    project: "generation_diffusion"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null # pass correct id to resume experiment! (if ckpt_path is not null)
+
+ckpt_path: null # simply provide checkpoint path to resume training

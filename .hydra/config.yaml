@@ -1,0 +1,190 @@
+task_name: reconstruction_vae/train
+tags:
+- dev
+train: true
+test: true
+ckpt_path: null
+seed: 12345
+data:
+  transform_train:
+    _target_: albumentations.Compose
+    transforms:
+    - _target_: albumentations.Resize
+      height: ${data.image_size}
+      width: ${data.image_size}
+      always_apply: true
+    - _target_: albumentations.HorizontalFlip
+      p: 0.5
+    - _target_: albumentations.Normalize
+      mean: 0.5
+      std: 0.5
+      max_pixel_value: 1.0
+    - _target_: albumentations.pytorch.transforms.ToTensorV2
+    additional_targets:
+      cond: image
+  transform_val:
+    _target_: albumentations.Compose
+    transforms:
+    - _target_: albumentations.Resize
+      height: ${data.image_size}
+      width: ${data.image_size}
+      always_apply: true
+    - _target_: albumentations.Normalize
+      mean: 0.5
+      std: 0.5
+      max_pixel_value: 1.0
+    - _target_: albumentations.pytorch.transforms.ToTensorV2
+    additional_targets:
+      cond: image
+  _target_: src.data.DiffusionDataModule
+  data_dir: /data/hpc/minhdd/anomaly/data/
+  train_val_test_dir:
+  - train/image
+  - val/image
+  - test/image
+  batch_size: 2
+  num_workers: 10
+  pin_memory: true
+  dataset_name: brats2020
+  n_classes: -1
+  image_size: 256
+model:
+  _target_: src.models.vae.VAEModule
+  use_ema: true
+  optimizer:
+    _target_: torch.optim.Adam
+    _partial_: true
+    lr: 0.001
+    weight_decay: 0.0
+  scheduler:
+    _target_: torch.optim.lr_scheduler.ExponentialLR
+    _partial_: true
+    gamma: 0.95
+  net:
+    _target_: src.models.vae.net.VanillaVAE
+    kld_weight: 0.05
+    encoder:
+      _target_: src.models.components.up_down.Encoder
+      in_channels: 4
+      z_channels: ${model.net.latent_dims[0]}
+      base_channels: 64
+      block: Residual
+      n_layer_blocks: 1
+      drop_rate: 0.1
+      channel_multipliers:
+      - 1
+      - 2
+      - 4
+      attention: Attention
+      n_attention_heads: null
+      n_attention_layers: null
+      double_z: true
+    decoder:
+      _target_: src.models.components.up_down.Decoder
+      out_channels: ${model.net.encoder.in_channels}
+      z_channels: ${model.net.latent_dims[0]}
+      base_channels: ${model.net.encoder.base_channels}
+      block: ${model.net.encoder.block}
+      n_layer_blocks: ${model.net.encoder.n_layer_blocks}
+      drop_rate: ${model.net.encoder.drop_rate}
+      channel_multipliers: ${model.net.encoder.channel_multipliers}
+      attention: ${model.net.encoder.attention}
+      n_attention_heads: ${model.net.encoder.n_attention_heads}
+      n_attention_layers: ${model.net.encoder.n_attention_layers}
+    latent_dims:
+    - 4
+    - 64
+    - 64
+  criterion:
+    _target_: torch.nn.MSELoss
+callbacks:
+  model_checkpoint:
+    _target_: pytorch_lightning.callbacks.ModelCheckpoint
+    dirpath: ${paths.output_dir}/checkpoints
+    filename: epoch_{epoch:03d}
+    monitor: val/ssim
+    verbose: false
+    save_last: true
+    save_top_k: 1
+    mode: max
+    auto_insert_metric_name: false
+    save_weights_only: false
+    every_n_train_steps: null
+    train_time_interval: null
+    every_n_epochs: null
+    save_on_train_epoch_end: null
+  model_summary:
+    _target_: pytorch_lightning.callbacks.RichModelSummary
+    max_depth: -1
+  tqdm_progress_bar:
+    _target_: pytorch_lightning.callbacks.TQDMProgressBar
+    refresh_rate: 1
+    process_position: 0
+  lr_monitor:
+    _target_: pytorch_lightning.callbacks.LearningRateMonitor
+    logging_interval: epoch
+    log_momentum: false
+  gen_sample:
+    _target_: src.utils.callbacks.GenSample
+    grid_shape:
+    - 5
+    - 5
+    mean: ${data.transform_val.transforms[1].mean}
+    std: ${data.transform_val.transforms[1].std}
+    n_ensemble: null
+  metrics:
+    _target_: src.utils.callbacks.Metrics
+    metric_list:
+    - ssim
+    - psnr
+    mean: ${data.transform_val.transforms[1].mean}
+    std: ${data.transform_val.transforms[1].std}
+    n_ensemble: null
+  reconstruction:
+    metrics:
+      metric_list:
+      - ssim
+      - psnr
+      - dice
+      - iou
+logger:
+  wandb:
+    _target_: pytorch_lightning.loggers.wandb.WandbLogger
+    save_dir: ${paths.output_dir}
+    offline: false
+    id: null
+    anonymous: null
+    project: reconstruction_vae
+    log_model: false
+    prefix: ''
+    group: ${data.dataset_name}
+    tags: ${tags}
+    job_type: ''
+    name: ${now:%Y-%m-%d}_${now:%H-%M-%S}
+trainer:
+  _target_: pytorch_lightning.Trainer
+  default_root_dir: ${paths.output_dir}
+  min_epochs: 1
+  max_epochs: 30
+  accelerator: gpu
+  devices: 2
+  precision: '16'
+  check_val_every_n_epoch: 5
+  deterministic: false
+  strategy:
+    _target_: pytorch_lightning.strategies.ddp.DDPStrategy
+    find_unused_parameters: false
+    gradient_as_bucket_view: true
+  num_nodes: 1
+  sync_batchnorm: true
+  gradient_clip_val: 1.0
+paths:
+  root_dir: ${oc.env:PROJECT_ROOT}
+  data_dir: ${paths.root_dir}/data/
+  log_dir: ${paths.root_dir}/logs/
+  output_dir: ${hydra:runtime.output_dir}
+  work_dir: ${hydra:runtime.cwd}
+extras:
+  ignore_warnings: false
+  enforce_tags: true
+  print_config: true
