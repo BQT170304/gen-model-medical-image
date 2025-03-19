@@ -15,9 +15,9 @@ pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 from src.models.components.up_down import Encoder, Decoder
 from src.models.vae.net import BaseVAE, VQVAE
 from src.utils.ema import LitEma
-from src.models.guided_diffusion import dist_util
-from src.models.guided_diffusion.resample import LossAwareSampler, create_named_schedule_sampler
-from src.models.guided_diffusion.script_util import (
+from src.models.diffusion.guided_diffusion import dist_util
+from src.models.diffusion.guided_diffusion.resample import LossAwareSampler, create_named_schedule_sampler
+from src.models.diffusion.guided_diffusion.script_util import (
     model_and_diffusion_defaults,
     create_model_and_diffusion,
     args_to_dict,
@@ -74,9 +74,12 @@ class LatentDiffusionModule(pl.LightningModule):
             param.requires_grad = False
             
         # Create diffusion model
-        args = self.get_default_args()
+        defaults = self.get_default_args()
+        args_dict = model_and_diffusion_defaults()
+        args_dict.update(defaults)
+        print("args_dict: ", args_dict)
         self.model, self.diffusion = create_model_and_diffusion(
-            **args_to_dict(args, model_and_diffusion_defaults().keys())
+            **args_dict
         )
         
         # Create the schedule sampler
@@ -96,42 +99,22 @@ class LatentDiffusionModule(pl.LightningModule):
     
     def get_default_args(self):
         """Return default arguments for the diffusion model."""
-        parser = argparse.ArgumentParser()
         defaults = dict(
-            data_dir="",
-            schedule_sampler="uniform",
-            lr=1e-4,
-            weight_decay=0.0,
-            lr_anneal_steps=0,
-            batch_size=1,
-            microbatch=-1,
-            ema_rate="0.9999",
-            log_interval=100,
-            save_interval=10000,
-            resume_checkpoint='',
             use_fp16=False,
-            fp16_scale_growth=1e-3,
             dataset='brats',
-            class_cond=True,
-            num_channels=128,
+            class_cond=False,
+            image_size=32,
+            num_channels=64,
             num_res_blocks=2,
-            attention_resolutions="16, 8",
+            attention_resolutions="16,8",
             dropout=0.0,
             learn_sigma=False,
-            sigma_small=False,
             diffusion_steps=1000,
             noise_schedule="linear",
             timestep_respacing="ddim1000",
         )
         
-        class Args:
-            pass
-        
-        args = Args()
-        for k, v in defaults.items():
-            setattr(args, k, v)
-        
-        return args
+        return defaults
     
     def on_train_batch_end(self, *args, **kwargs):
         if self.use_ema:
@@ -288,4 +271,5 @@ if __name__ == "__main__":
     config_path = str(root / "configs" / "model" / "diffusion")
     
     @hydra.main(version_base=None, config_path=config_path, config_name="latent_diffusion_module.yaml")
-    def main(cfg: DictConfig)
+    def main(cfg: DictConfig):
+        pass

@@ -80,7 +80,7 @@ class VQVAE(BaseVAE):
         vq_layer: VectorQuantizer,
         encoder: Encoder,
         decoder: Decoder,
-        ckpt_dir: str = '/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae',
+        ckpt_dir: str = None,
     ) -> None:
         """_summary_
 
@@ -98,7 +98,7 @@ class VQVAE(BaseVAE):
         self.encoder = encoder
         self.decoder = decoder
         self.vq_layer = vq_layer
-        if os.listdir(ckpt_dir):
+        if ckpt_dir and os.path.exists(ckpt_dir):
             self.encoder.load_state_dict(torch.load(ckpt_dir + '/encoder.pth'))
             self.decoder.load_state_dict(torch.load(ckpt_dir + '/decoder.pth'))
             self.vq_layer.load_state_dict(torch.load(ckpt_dir + '/vq_layer.pth'))

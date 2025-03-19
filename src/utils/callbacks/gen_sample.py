@@ -9,7 +9,7 @@ from torchvision.utils import make_grid
 from pytorch_lightning.callbacks import Callback
 
 from src.models.gan import GANModule, CGANModule
-from src.models.diffusion import DiffusionModule, ConditionDiffusionModule
+from src.models.diffusion import DiffusionModule, LatentDiffusionModule, ConditionDiffusionModule
 from src.models.vae import VAEModule
 from src.models.unet import UNetModule
 from src.models.flow import NFModule
