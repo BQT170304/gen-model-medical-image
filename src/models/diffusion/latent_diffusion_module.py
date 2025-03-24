@@ -59,14 +59,14 @@ class LatentDiffusionModule(pl.LightningModule):
         self.vae = vae
         
         # Load pre-trained weights if paths are provided
-        if os.path.exists(encoder_path):
-            self.vae.encoder.load_state_dict(torch.load(encoder_path))
+        # if os.path.exists(encoder_path):
+        #     self.vae.encoder.load_state_dict(torch.load(encoder_path))
         
-        if os.path.exists(decoder_path):
-            self.vae.decoder.load_state_dict(torch.load(decoder_path))
+        # if os.path.exists(decoder_path):
+        #     self.vae.decoder.load_state_dict(torch.load(decoder_path))
         
-        if os.path.exists(vq_layer_path):
-            self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
+        # if os.path.exists(vq_layer_path):
+        #     self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
             
         self.vae.eval()
         # Freeze VAE 
@@ -234,33 +234,94 @@ class LatentDiffusionModule(pl.LightningModule):
         
         return {"optimizer": optimizer}
     
-    def sample(self, cond: Dict, batch_size: int = 1) -> Tensor:
-        """Generate samples using the diffusion model.
+    def sample(self, batch, cond: Dict, batch_size: int = 1) -> Dict[str, Tensor]:
+        """Generate samples using the diffusion model and calculate difftot as a binary mask.
 
         Args:
             cond (Dict): Conditioning information.
             batch_size (int, optional): Batch size. Defaults to 1.
 
         Returns:
-            Tensor: Generated samples.
+            Dict[str, Tensor]: Dictionary containing original images, generated images, and difftot mask.
         """
         # Generate samples in latent space
-        shape = (batch_size, self.vae.encoder.z_channels, 32, 32)  # Adjust dimensions as needed
-        samples = self.diffusion.p_sample_loop(
-            self.model,
-            shape,
+        original_images = batch[0]
+        
+        # Encode original images to latent space
+        with torch.no_grad():
+            latents, _ = self.vae.encode(original_images.float())
+            
+            # Normalize latents to [-1, 1]
+            _max = latents.max()
+            _min = latents.min()
+            latents = (latents - _min) / (_max - _min)  # [0, 1]
+            latents = 2 * latents - 1  # [-1, 1]
+        
+        # Setup model function for diffusion sampling
+        def model_fn(x, t, y=None):
+            return self.model(x, t, y if cond.get("y") is not None else None)
+        
+        # Setup condition function (can be None or implemented if needed)
+        cond_fn = None
+        
+        # Create a batch of original data in the format expected by ddim_sample_loop_known
+        org_batch = [latents, cond.get("y", None), None, None]
+        
+        # Sample using ddim
+        sample_fn = self.diffusion.ddim_sample_loop_known
+        
+        # Generate samples in latent space
+        samples, x_noisy, org = sample_fn(
+            model_fn,
+            (batch_size, self.vae.latent_dims[0], 32, 32),  # shape
+            org_batch,
+            org=org_batch,
             clip_denoised=True,
             model_kwargs=cond,
+            cond_fn=cond_fn,
+            device=latents.device,
+            noise_level=500  # Adjustable parameter
         )
+        
+        # Denormalize samples if normalized during encoding
+        samples = ((samples + 1) / 2) * (_max - _min) + _min
         
         # Decode from latent space to image space
         with torch.no_grad():
-            decoded_samples = self.vae.decode(samples)
+            generated_images = self.vae.decode(samples)
         
-        # Normalize to [0, 1]
-        decoded_samples = (decoded_samples + 1) / 2
+        # Normalize images to [0, 1] range for visualization
+        generated_images = (generated_images + 1) / 2
+        original_images = (original_images + 1) / 2
         
-        return decoded_samples
+        # Calculate difftot (absolute difference between original and generated images)
+        difftot = torch.abs(original_images - generated_images).mean(dim=1, keepdim=True)
+        
+        # Convert difftot to numpy for thresholding
+        difftot_np = difftot.squeeze().cpu().numpy()
+        print(f"Difftot shape: {difftot_np.shape}")
+        
+        # Apply Otsu thresholding
+        img_for_thresh = (difftot_np * 255).astype(np.uint8)  # Scale to 0-255 for thresholding
+        ret, thresh1 = cv2.threshold(img_for_thresh, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        print(f"Otsu threshold value: {ret}")
+        
+        # # Apply mask cleaning to remove small objects
+        # min_size = 0  # Adjust this value as needed
+        # mask_cleaned = remove_small_objects(thresh1.astype(bool), min_size=min_size)
+        
+        # Convert threshold result back to torch tensor
+        # Check number of dimensions and add one if needed
+        if thresh1.ndim == 2:  # If 2D (height, width)
+            thresh1 = np.expand_dims(thresh1, axis=0)  # Add channel dimension (1, height, width)
+            
+        difftot_mask = thresh1
+        
+        # Return results as a dictionary
+        return {
+            "generated_images": generated_images,
+            "difftot": difftot_mask,
+        }
 
 
 if __name__ == "__main__":

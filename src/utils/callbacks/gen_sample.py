@@ -1,5 +1,6 @@
 from typing import Any, Tuple, List, Dict
 
+import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import torch
@@ -129,6 +130,78 @@ class GenSample(Callback):
                 mode=mode,
                 caption=['fake', 'real', 'cond'] if conds is not None
                 and 'image' in conds.keys() else ['fake', 'real'])
+        
+        elif isinstance(pl_module, LatentDiffusionModule):
+            reals = batch[0][:n_samples]
+            conds = None
+            
+            # Chuẩn bị điều kiện nếu cần
+            if len(batch) > 1 and isinstance(batch[1], dict):
+                conds = {key: value[:n_samples] for key, value in batch[1].items()}
+            
+            # Tạo dictionary conditioning với original_images
+            conditioning = {}
+            if conds is not None:
+                conditioning.update(conds)
+            
+            # Tạo danh sách để chứa kết quả
+            fakes = []
+            difftots = []
+            
+            # Lặp qua n_ensemble lần để tạo nhiều mẫu
+            for _ in range(self.n_ensemble):
+                # Gọi hàm sample của LatentDiffusionModule
+                results = pl_module.sample(
+                    batch=batch,
+                    cond=conditioning,
+                    batch_size=n_samples
+                )
+                
+                # Lấy ảnh đã tạo và difftot từ kết quả
+                generated_images = results["generated_images"]
+                difftot = results["difftot"]
+                
+                fakes.append(generated_images)
+                difftots.append(difftot)
+            
+            # Chuyển các mẫu thành tensor
+            fakes = torch.stack(fakes, dim=1)  # b, n, c, w, h
+            
+            # Tính giá trị trung bình nếu có nhiều mẫu
+            if self.n_ensemble > 1:
+                # Tính toán variance nếu cần
+                self.compute_variance(pl_module, reals, fakes, conds, mode)
+            
+            # Lấy giá trị trung bình của các mẫu
+            fakes = fakes.mean(dim=1)  # b, c, w, h
+            
+            # Chuẩn bị difftot cho visualization
+            difftots = np.stack(difftots, axis=1)  # b, n, w, h
+            difftots = np.mean(difftots, axis=1)  # b, w, h
+            difftots = torch.tensor(difftots, device=reals.device)
+            print(difftots.shape)
+            
+            # Nhóm ảnh để log
+            images_to_log = [self.rescale(reals), self.rescale(fakes)]
+            captions = ['original', 'generated']
+            
+            # Thêm difftot vào kết quả
+            images_to_log.append(difftots)
+            captions.append('difftot')
+            
+            # Thêm điều kiện nếu có
+            if conds is not None and 'image' in conds:
+                images_to_log.append(self.rescale(conds['image']))
+                captions.append('condition')
+            
+            # Log kết quả
+            self.log_sample(
+                images_to_log,
+                pl_module=pl_module,
+                nrow=self.grid_shape[0],
+                mode=mode,
+                caption=captions
+            )
 
         elif isinstance(pl_module, GANModule):
             reals = batch[0][:n_samples]
