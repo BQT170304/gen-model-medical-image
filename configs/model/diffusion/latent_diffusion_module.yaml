@@ -26,7 +26,7 @@ vae:
     _target_: src.models.components.up_down.Encoder
 
     in_channels: 4  # Adjusted to match BRATS2020 dataset
-    z_channels: ${model.net.latent_dims[0]}
+    z_channels: ${model.vae.latent_dims[0]}
     base_channels: 64
     block: Residual
     n_layer_blocks: 1
@@ -40,21 +40,21 @@ vae:
   decoder:
     _target_: src.models.components.up_down.Decoder
 
-    out_channels: ${model.net.encoder.in_channels}
-    z_channels: ${model.net.latent_dims[0]}
-    base_channels: ${model.net.encoder.base_channels}
-    block: ${model.net.encoder.block}
-    n_layer_blocks: ${model.net.encoder.n_layer_blocks}
-    drop_rate: ${model.net.encoder.drop_rate}
-    channel_multipliers: ${model.net.encoder.channel_multipliers}
-    attention: ${model.net.encoder.attention}
-    n_attention_heads: ${model.net.encoder.n_attention_heads}
-    n_attention_layers: ${model.net.encoder.n_attention_layers}
+    out_channels: ${model.vae.encoder.in_channels}
+    z_channels: ${model.vae.latent_dims[0]}
+    base_channels: ${model.vae.encoder.base_channels}
+    block: ${model.vae.encoder.block}
+    n_layer_blocks: ${model.vae.encoder.n_layer_blocks}
+    drop_rate: ${model.vae.encoder.drop_rate}
+    channel_multipliers: ${model.vae.encoder.channel_multipliers}
+    attention: ${model.vae.encoder.attention}
+    n_attention_heads: ${model.vae.encoder.n_attention_heads}
+    n_attention_layers: ${model.vae.encoder.n_attention_layers}
 
   latent_dims: [4, 32, 32]  # Adjusted to match the configuration
 
   vq_layer:
     _target_: src.models.vae.net.VectorQuantizer
     num_embeddings: 512
-    embedding_dim: ${model.net.latent_dims[0]}
+    embedding_dim: ${model.vae.latent_dims[0]}
     beta: 0.25

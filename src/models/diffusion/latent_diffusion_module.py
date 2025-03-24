@@ -77,7 +77,7 @@ class LatentDiffusionModule(pl.LightningModule):
         defaults = self.get_default_args()
         args_dict = model_and_diffusion_defaults()
         args_dict.update(defaults)
-        print("args_dict: ", args_dict)
+        # print("args_dict: ", args_dict)
         self.model, self.diffusion = create_model_and_diffusion(
             **args_dict
         )
@@ -166,7 +166,8 @@ class LatentDiffusionModule(pl.LightningModule):
             latents = 2 * latents - 1  # [-1, 1]
         
         # Apply diffusion model on latents
-        loss = self(latents, cond)
+        # loss = self(latents, cond)
+        loss = self(latents, None) # Khong can condition
         
         # Update and log metrics
         self.train_loss(loss)
@@ -194,7 +195,8 @@ class LatentDiffusionModule(pl.LightningModule):
             latents = 2 * latents - 1  # [-1, 1]
         
         # Apply diffusion model on latents
-        loss = self(latents, cond)
+        # loss = self(latents, cond)
+        loss = self(latents, None) # Khong can condition
         
         # Update and log metrics
         self.val_loss(loss)

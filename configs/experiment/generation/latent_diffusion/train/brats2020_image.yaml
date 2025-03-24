@@ -20,7 +20,7 @@ task_name: "generation_latent_diffusion/train"
 trainer:
   # precision: "16-mixed"
   max_epochs: 500
-  devices: [0]
+  devices: [2]
   accelerator: gpu
   gradient_clip_algorithm: "value"
   gradient_clip_val: 1

@@ -1,13 +1,13 @@
-_target_: src.data.DiffusionDataModule
+_target_: src.data.BraTSDataModule
 
 defaults:
   - transform_train: brats2020.yaml
   - transform_val: brats2020.yaml
   - _self_
 
-data_dir: /data/hpc/qtung/data/
+data_dir: /data/hpc/qtung/gen-model-boilerplate/data/
 # train_val_test_split: [0.8, 0.1, 0.1]
-train_val_test_dir: ["train", "val", "test"]
+train_val_test_dir: ["train/image", "val/image", "test/image"] # for diffusion
 batch_size: 8
 num_workers: 8
 pin_memory: True

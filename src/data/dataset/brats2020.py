@@ -46,20 +46,27 @@ class BraTS2020Dataset(Dataset):
 
     def __getitem__(self, index):
         image_path = self.img_paths[index]
-        # mask_path = self.img_paths[index].replace('image', 'mask')
+        mask_path = self.img_paths[index].replace('image', 'mask')
 
         image = np.load(image_path)
 
         if image.max() > 0:
             image = image / image.max()
         
-        # if self.train_val_test_dir == "Test-without-label":
-        #     mask = np.zeros_like(image[..., :1])
-        # else:   
-        #     mask = np.load(mask_path)
+        if osp.exists(mask_path):
+            mask = np.load(mask_path)
+        else:
+            mask = np.zeros_like(image[..., 0])
+        
+        if mask.max() > 0:
+            label = 1
+        else:
+            label = 0
+        out_dict = {}
+        out_dict["y"] = label
 
-        # return mask, {'image': image}
-        return image, {'image': image} # For vae reconstruction
+        return image, out_dict, mask, label
+        # return image, {'image': image} # For vae reconstruction
 
 
 if __name__ == "__main__":

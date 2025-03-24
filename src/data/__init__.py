@@ -1,1 +1,2 @@
 from .diffusion_datamodule import DiffusionDataModule
+from .brats_datamodule import BraTSDataModule
