@@ -12,7 +12,7 @@ from torchmetrics.image import (StructuralSimilarityIndexMeasure,
 from torchmetrics import Dice, JaccardIndex, MeanMetric
 
 from src.models.gan import GANModule, CGANModule
-from src.models.diffusion import DiffusionModule, ConditionDiffusionModule
+from src.models.diffusion import DiffusionModule, ConditionDiffusionModule, LatentDiffusionModule
 from src.models.vae import VAEModule
 from src.models.unet import UNetModule
 from src.models.flow import NFModule
@@ -25,7 +25,7 @@ class Metrics(Callback):
         metric_list: List[str],
         mean: float = 0.5,
         std: float = 0.5,
-        n_ensemble: int | None = None,
+        n_ensemble: int = 1,
     ) -> None:
         """_summary_
 
@@ -506,7 +506,21 @@ class Metrics(Callback):
             
             fakes = torch.stack(fakes, dim=1)  # (b, n, c, w, h)
             preds = self.rescale(fakes) # range [0, 1]
-
+            
+        elif isinstance(pl_module, LatentDiffusionModule):
+            fakes = []
+            conditioning = {}
+            if len(batch) > 1 and isinstance(batch[1], dict):
+                conditioning.update(batch[1])
+                
+            for _ in range(self.n_ensemble):
+                # Gọi phương thức sample của LatentDiffusionModule
+                results = pl_module.sample(batch=batch, cond=conditioning, batch_size=batch[0].shape[0])
+                fakes.append(results["generated_images"])  # [b, c, w, h]
+            
+            fakes = torch.stack(fakes, dim=1)  # (b, n, c, w, h)
+            preds = self.rescale(fakes) # range [0, 1]
+            
         elif isinstance(pl_module, GANModule):
             conds=batch[1] if isinstance(pl_module, CGANModule) else None
             samples = pl_module.predict(cond=conds,

@@ -58,12 +58,12 @@ class BraTS2020Dataset(Dataset):
         else:
             mask = np.zeros_like(image[..., 0])
         
+        out_dict = {}
         if mask.max() > 0:
             label = 1
         else:
             label = 0
-        out_dict = {}
-        out_dict["y"] = label
+        # out_dict["y"] = label
 
         return image, out_dict, mask, label
         # return image, {'image': image} # For vae reconstruction

@@ -435,7 +435,7 @@ class GaussianDiffusion:
         )
         return out, cfn
 
-    def sample_known(self, img, batch_size = 1):
+    def sample_known(self, model, img, batch_size = 1):
         image_size = self.image_size
         channels = self.channels
         return self.p_sample_loop_known(model,(batch_size, channels, image_size, image_size), img)
