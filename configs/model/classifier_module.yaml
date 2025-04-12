@@ -1,28 +1,27 @@
-_target_: src.models.diffusion.LatentDiffusionModule
+_target_: src.models.classifier_module.ClassifierModule
 
-use_ema: true
+use_latent: true
 num_timesteps: 500
 
 optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
-  lr: 1e-4
+  lr: 5e-4
   weight_decay: 1e-5
 
 scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   _partial_: true
-  T_max: 100
+  T_max: 200
   eta_min: 1e-6
 
-encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/encoder.pth # both
-decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/decoder.pth # both
-vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/vq_layer.pth # both
-model_path: ${paths.root_dir}/src/ckpt/latent_diffusion/unet_ldm64.pth
-# encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/encoder.pth # healthy only
-# decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/decoder.pth # healthy only
-# vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/vq_layer.pth # healthy only
+# Paths to model weights
+encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/encoder.pth # both encoder
+decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/decoder.pth # both decoder
+vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/vq_layer.pth
+classifier_path: ${paths.root_dir}/src/ckpt/classifier/classifier_ldm64.pth
 
+# VAE configuration
 vae:
   _target_: src.models.vae.net.VQVAE
 
@@ -59,6 +58,6 @@ vae:
 
   vq_layer:
     _target_: src.models.vae.net.VectorQuantizer
-    num_embeddings: 256
+    num_embeddings: 512
     embedding_dim: ${model.vae.latent_dims[0]}
     beta: 0.25

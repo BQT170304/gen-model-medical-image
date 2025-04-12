@@ -160,6 +160,8 @@ scripts/train_diffusion.sh
 test*
 /tests/*
 
+results*
+
 # file model weights
 *.ckpt
 *.pth

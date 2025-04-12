@@ -1,0 +1,25 @@
+defaults:
+  - _self_
+  - /data: brats2020.yaml
+  - /model: diffusion/latent_diffusion_module.yaml 
+  - /paths: default.yaml
+
+task_name: "sample_ldm"
+tags: ["inference", "sampling"]
+seed: 12345
+
+data:
+  batch_size: 1
+  num_workers: 4
+  image_size: 128
+
+classifier:
+  path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt/classifier/classifier_ldm64.pth
+  scale: 100.0  # Scale for classifier guidance
+  use_label: true  
+
+sampling:
+  num_samples: 15
+  save_dir: /data/hpc/qtung/gen-model-boilerplate/results/cldm/brats2020
+  noise_level: 100  # Level of noise to add during sampling
+  skip_normal: true 

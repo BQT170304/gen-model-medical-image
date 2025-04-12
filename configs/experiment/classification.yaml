@@ -1,0 +1,63 @@
+# @package _global_
+
+# To execute this experiment, run:
+# python src/train.py experiment=classification
+
+defaults:
+  - override /data: brats2020.yaml
+  - override /model: classifier_module.yaml
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  - override /logger: wandb.yaml
+
+# All parameters below will be merged with parameters from default configurations set above
+# This allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "classification"
+
+trainer:
+  precision: "32"
+  max_epochs: 200
+  devices: [3]
+  accelerator: gpu
+  gradient_clip_algorithm: "value"
+  gradient_clip_val: 0.5
+  num_sanity_val_steps: 0
+
+data:
+  batch_size: 16
+  num_workers: 16
+  image_size: 128
+
+model:
+  use_latent: true
+  num_timesteps: 100
+  
+  vae:
+    encoder:
+      in_channels: 4  # 4 channels for BRATS2020 dataset
+      base_channels: 64
+      channel_multipliers: [2, 4]
+    latent_dims: [4, 64, 64]
+    vq_layer:
+      embedding_dim: ${model.vae.latent_dims[0]}
+      num_embeddings: 256
+  
+  optimizer:
+    lr: 1e-4
+  
+  scheduler:
+    T_max: 200
+    eta_min: 1e-6
+
+logger:
+  wandb:
+    name: "classification_brats2020"
+    project: "classification"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null 
+
+  

@@ -13,7 +13,7 @@ import torch.distributed as dist
 
 # Change this to reflect your cluster layout.
 # The GPU for a given rank is (rank % GPUS_PER_NODE).
-GPUS_PER_NODE = 8
+GPUS_PER_NODE = 4
 
 SETUP_RETRY_COUNT = 3
 
@@ -25,7 +25,7 @@ def setup_dist():
     if dist.is_initialized():
         return
     if th.cuda.is_available():
-        os.environ["CUDA_VISIBLE_DEVICES"] = '0'
+        os.environ["CUDA_VISIBLE_DEVICES"] = '1'
     else:
         os.environ["CUDA_VISIBLE_DEVICES"] = "" #f"{MPI.COMM_WORLD.Get_rank() % GPUS_PER_NODE}"
 

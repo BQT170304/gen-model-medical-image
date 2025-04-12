@@ -40,25 +40,38 @@ class GenSample(Callback):
         self.mean = mean
         self.std = std
         self.n_ensemble = n_ensemble
+        self.train_batch = None
+        self.val_batch = None
+        self.test_batch = None
 
-    # train
-    def on_train_batch_end(self, trainer: Trainer, pl_module: LightningModule,
-                           outputs: Any, batch: Any, batch_idx: int) -> None:
-        if batch_idx == 0:
-            self.sample(pl_module, batch, mode="train")
+    def on_train_batch_start(self, trainer: Trainer, pl_module: LightningModule,
+                             batch: Any, batch_idx: int) -> None:
+        if batch_idx == 0 and self.train_batch is None:
+            self.train_batch = batch
 
-    # validation
-    def on_validation_batch_end(self, trainer: Trainer,
-                                pl_module: LightningModule, outputs: Any,
-                                batch: Any, batch_idx: int) -> None:
-        if batch_idx == 0:
-            self.sample(pl_module, batch, mode="val")
+    def on_validation_batch_start(self, trainer: Trainer, pl_module: LightningModule,
+                                 batch: Any, batch_idx: int) -> None:
+        if batch_idx == 0 and self.val_batch is None:
+            self.val_batch = batch
+    
+    def on_test_batch_start(self, trainer: Trainer, pl_module: LightningModule,
+                           batch: Any, batch_idx: int) -> None:
+        if batch_idx == 0 and self.test_batch is None:
+            self.test_batch = batch
+            
+    def on_train_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        if self.train_batch is not None:
+            self.sample(pl_module, self.train_batch, mode="train")
+            self.train_batch = None
 
-    # test
-    def on_test_batch_end(self, trainer: Trainer, pl_module: LightningModule,
-                          outputs: Any, batch: Any, batch_idx: int) -> None:
-        if batch_idx == 0:
-            self.sample(pl_module, batch, mode="test")
+    def on_validation_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        if self.val_batch is not None:
+            self.sample(pl_module, self.val_batch, mode="val")
+            # self.val_batch = None
+
+    def on_test_epoch_end(self, trainer: Trainer, pl_module: LightningModule) -> None:
+        if self.test_batch is not None:
+            self.sample(pl_module, self.test_batch, mode="test")
 
     def rescale(self, image: Tensor):
         #convert range (-1, 1) to (0, 1)
@@ -67,8 +80,7 @@ class GenSample(Callback):
     def sample(self, pl_module: LightningModule, batch: Any, mode: str):
 
         # avoid out of memory
-        n_samples = min(self.grid_shape[0] * self.grid_shape[1],
-                        batch[0].shape[0])
+        n_samples = min(self.grid_shape[0] * self.grid_shape[1], 4)
 
         if isinstance(pl_module, UNetModule):
             masks = batch[0][:n_samples]
@@ -152,17 +164,14 @@ class GenSample(Callback):
             for _ in range(self.n_ensemble):
                 # Gọi hàm sample của LatentDiffusionModule
                 results = pl_module.sample(
-                    batch=batch,
+                    batch=[reals, conds, None, None],
                     cond=conditioning,
                     batch_size=n_samples
                 )
                 
                 # Lấy ảnh đã tạo và difftot từ kết quả
                 generated_images = results["generated_images"]
-                difftot = results["difftot"]
-                
                 fakes.append(generated_images)
-                difftots.append(difftot)
             
             # Chuyển các mẫu thành tensor
             fakes = torch.stack(fakes, dim=1)  # b, n, c, w, h
@@ -175,19 +184,9 @@ class GenSample(Callback):
             # Lấy giá trị trung bình của các mẫu
             fakes = fakes.mean(dim=1)  # b, c, w, h
             
-            # Chuẩn bị difftot cho visualization
-            difftots = np.stack(difftots, axis=1)  # b, n, w, h
-            difftots = np.mean(difftots, axis=1)  # b, w, h
-            difftots = torch.tensor(difftots, device=reals.device)
-            print(difftots.shape)
-            
             # Nhóm ảnh để log
             images_to_log = [self.rescale(reals), self.rescale(fakes)]
             captions = ['original', 'generated']
-            
-            # Thêm difftot vào kết quả
-            images_to_log.append(difftots)
-            captions.append('difftot')
             
             # Thêm điều kiện nếu có
             if conds is not None and 'image' in conds:

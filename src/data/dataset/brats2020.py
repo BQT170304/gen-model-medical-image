@@ -63,7 +63,7 @@ class BraTS2020Dataset(Dataset):
             label = 1
         else:
             label = 0
-        # out_dict["y"] = label
+        out_dict["y"] = label
 
         return image, out_dict, mask, label
         # return image, {'image': image} # For vae reconstruction

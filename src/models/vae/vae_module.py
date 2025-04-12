@@ -216,16 +216,16 @@ class VAEModule(pl.LightningModule):
             print("SAVED!")
             torch.save(
                 self.net.encoder.state_dict(), 
-                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae/encoder.pth"
+                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/encoder.pth"
             )
             torch.save(
                 self.net.decoder.state_dict(), 
-                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae/decoder.pth"
+                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/decoder.pth"
             )
             if isinstance(self.net.vq_layer, nn.Module):
                 torch.save(
                     self.net.vq_layer.state_dict(), 
-                    f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae/vq_layer.pth"
+                    f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/vq_layer.pth"
                 )
 
     def test_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> None:

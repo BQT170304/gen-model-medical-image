@@ -112,6 +112,9 @@ class VQVAE(BaseVAE):
         """
         # Get embeddings with shape `[batch_size, z_channels, z_height, z_width]`
         z = self.encoder(img)
+        return z
+    
+    def vq(self, z):
         z, vq_loss = self.vq_layer(z)
         return z, vq_loss
 
@@ -126,7 +129,7 @@ class VQVAE(BaseVAE):
         return self.decoder(z)
 
     def forward(self, img: Tensor) -> Tuple[Tensor, Dict[str, Tensor]]:
-        z, vq_loss = self.encode(img)
+        z, vq_loss = self.vq(self.encode(img))
         loss = {"vq_loss": vq_loss}
         return self.decode(z), loss
 
