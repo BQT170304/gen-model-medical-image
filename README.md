@@ -14,10 +14,10 @@ Diffusion model is a type of generative model. Its approach is different from GA
 ## **2. Set Up**
 
   ### **Clone the repository**
-    https://github.com/huynhspm/Generative-Model
+    https://github.com/BQT170304/gen-model-boilerplate
     
   ### **Install environment packages**
-    cd Generative-Model
+    cd gen-model-boilerplate
     conda create -n diffusion python=3.10
     conda activate diffusion 
     pip install -r requirements.txt
@@ -72,6 +72,7 @@ Diffusion model is a type of generative model. Its approach is different from GA
   
   - **Segmentation task**:
     - [LIDC-IDRI](https://wiki.cancerimagingarchive.net/pages/viewpage.action?pageId=1966254)
+    - [BRATS2020](https://www.kaggle.com/datasets/awsaf49/brats20-dataset-training-validation)
     - [CVC-CLINIC](https://www.kaggle.com/datasets/balraj98/cvcclinicdb)
     - [ISIC](https://challenge.isic-archive.com/data/)
   
@@ -100,7 +101,7 @@ Diffusion model is a type of generative model. Its approach is different from GA
   - Unet: Encoder, Decoder
   - Unconditional Diffusion Model
   - Conditional diffusion model (label, image, text - need to implement text embedder model)
-  - Variational autoencoder: Vanilla (only work for reconstruction), VQ
+  - Variational autoencoder: Vanilla (only work for reconstruction), VQVAE
   - Latent diffusion model
-  - Stable diffusion model
+  - Latent conditional diffusion model (label)
   - Classifier-free; not work
