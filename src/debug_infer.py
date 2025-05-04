@@ -43,13 +43,7 @@ def create_argparser():
     add_dict_to_argparser(parser, defaults)
     return parser
 
-def normalize(img):
-    _min = img.min()
-    _max = img.max()
-    normalized_img = (img - _min)/ (_max - _min)
-    return normalized_img.cpu()
-
-def percentile_threshold(diff_map, percentile=95):
+def percentile_threshold(diff_map, percentile=80):
     threshold_value = np.percentile(diff_map, percentile)
     thresholded = np.where(diff_map > threshold_value, diff_map, 0)
     return thresholded
@@ -153,12 +147,43 @@ def visualize_and_save(original, latents, generated1, generated2, difftot_mask1,
     
     return dices[max_idx], max_iou
 
+def analyze_brightness_stats(original, generated, number):
+    """Compare statistical properties of original and generated images"""
+    # Convert to numpy if needed
+    if torch.is_tensor(original):
+        original = original.cpu().numpy()
+        generated = generated.cpu().numpy()
+    
+    # Calculate statistics
+    stats = {
+        "original_mean": np.mean(original),
+        "generated_mean": np.mean(generated),
+        "mean_ratio": np.mean(generated) / np.mean(original),
+        "original_median": np.median(original),
+        "generated_median": np.median(generated),
+        "original_std": np.std(original),
+        "generated_std": np.std(generated),
+        "original_range": [np.min(original), np.max(original)],
+        "generated_range": [np.min(generated), np.max(generated)]
+    }
+    
+    print(f"Brightness stats:")
+    for key, value in stats.items():
+        print(f"  {key}: {value}")
+    
+    with open("brightness_stats.txt", "a") as f:
+        f.write(f"Sample {number}:\n")
+        for key, value in stats.items():
+            f.write(f"  {key}: {value}\n")
+    
+    return stats
+
 @hydra.main(version_base="1.3", config_path="../configs", config_name="sample_ldm.yaml")
 def main(cfg: DictConfig):
     logger.configure()
     
     logger.log("Setting up data module...")
-    device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda:2" if torch.cuda.is_available() else "cpu")
     
     # Instantiate datamodule 
     datamodule: LightningDataModule = hydra.utils.instantiate(cfg.data)
@@ -180,7 +205,6 @@ def main(cfg: DictConfig):
         logger.log("Loading classifier...")
         classifier = create_classifier(**args_to_dict(args, classifier_defaults().keys()))
         classifier.load_state_dict(torch.load(cfg.classifier.path))
-        # classifier = torch.load(cfg.classifier.path)
         classifier.to(device)
         classifier.eval()
     
@@ -191,15 +215,11 @@ def main(cfg: DictConfig):
     num_samples = cfg.sampling.num_samples if hasattr(cfg.sampling, "num_samples") else -1
     save_dir = cfg.sampling.save_dir if hasattr(cfg.sampling, "save_dir") else "./samples"
     noise_level = cfg.sampling.noise_level if hasattr(cfg.sampling, "noise_level") else 500
-    if cfg.classifier.use_classifier:
-        classifier_scale = cfg.classifier.scale if hasattr(cfg, "classifier") and hasattr(cfg.classifier, "scale") else 100.0
-    else:
-        print("CLASSIFIER NOT USED")
-        classifier_scale = 0.0
+    classifier_scale = cfg.classifier.scale if hasattr(cfg, "classifier") and hasattr(cfg.classifier, "scale") else 100.0
     
     for idx, batch in enumerate(tqdm(test_loader, desc="Sampling")):
-        if idx >= 500:
-            break
+        if idx <= 100 or idx > 110:
+            continue
         img, cond, mask, label = batch
         if mask is not None:
             if hasattr(cfg.sampling, "skip_normal") and cfg.sampling.skip_normal and label == 0:
@@ -216,7 +236,6 @@ def main(cfg: DictConfig):
                 batch[i] = batch[i].to(device)
         
         # Set class label for classifier guidance
-        cond = {}
         if classifier is not None:
             # if hasattr(cfg.classifier, "use_label") and cfg.classifier.use_label:
             #     # Use the real label from the batch
@@ -261,6 +280,10 @@ def main(cfg: DictConfig):
         generated_images2 = results2["generated_images"]
         difftot_mask2 = results2["difftot_mask"]
         
+        stats1 = analyze_brightness_stats(org_images, generated_images, idx)
+        print('='*50)
+        stats2 = analyze_brightness_stats(org_images, generated_images2, idx)
+        
         # Visualize and evaluate
         dice, iou= visualize_and_save(
             org_images,
@@ -281,22 +304,16 @@ def main(cfg: DictConfig):
     
     # Calculate and log mean scores
     mean_dice = np.mean(all_dice_scores)
-    mean_dice_gt_10 = np.mean([d for d in all_dice_scores if d > 0.1])
     mean_iou = np.mean(all_iou_scores)
-    mean_iou_gt_10 = np.mean([i for i in all_iou_scores if i > 0.1])
     
     logger.log(f"Evaluation complete")
     logger.log(f"Mean Dice: {mean_dice:.4f}")
     logger.log(f"Mean IoU: {mean_iou:.4f}")
-    logger.log(f"Mean Dice (> 0.1): {mean_dice_gt_10:.4f}")
-    logger.log(f"Mean IoU (> 0.1): {mean_iou_gt_10:.4f}")
     
     # Save results to a text file
     with open(os.path.join(save_dir, "results.txt"), "w") as f:
         f.write(f"Mean Dice: {mean_dice:.4f}\n")
         f.write(f"Mean IoU: {mean_iou:.4f}\n")
-        f.write(f"Mean Dice (> 0.1): {mean_dice_gt_10:.4f}\n")
-        f.write(f"Mean IoU (> 0.1): {mean_iou_gt_10:.4f}\n")
         f.write("\nIndividual scores:\n")
         for i, (dice, iou) in enumerate(zip(all_dice_scores, all_iou_scores)):
             f.write(f"Sample {i}: Dice={dice:.4f}, IoU={iou:.4f}\n")

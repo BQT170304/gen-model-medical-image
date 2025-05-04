@@ -347,7 +347,8 @@ class GenSample(Callback):
         with pl_module.ema_scope():
 
             if isinstance(pl_module, VAEModule):
-                z, _ = pl_module.net.encode(images)
+                z = pl_module.net.encode(images)
+                z, _ = pl_module.net.vq(z)
                 z0, z1 = z[0], z[1]
 
                 interpolated_z = []

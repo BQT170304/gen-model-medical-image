@@ -1,4 +1,5 @@
 import glob
+import re
 import numpy as np
 import os.path as osp
 from torch.utils.data import Dataset
@@ -25,6 +26,11 @@ class BraTS2020Dataset(Dataset):
             print(f"Brats Dataset directory1: {self.dataset_dir}")
             self.img_paths = glob.glob(
                 f"{self.dataset_dir}/*/image_slice_*.npy") 
+            # all_img_paths = glob.glob(f"{self.dataset_dir}/*/image_slice_*.npy")
+            # self.img_paths = [
+            #     path for path in all_img_paths
+            #     if 80 <= int(re.search(r'image_slice_(\d+)\.npy', path).group(1)) <= 100
+            # ]
         else:
             print(f"Brats Dataset directory2: {self.dataset_dir}")
             img_dirs = [

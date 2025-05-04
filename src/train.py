@@ -47,7 +47,7 @@ def train(cfg: DictConfig) -> Tuple[dict, dict]:
     """
 
     # set seed for random number generators in pytorch, numpy and python.random
-    wandb_key = '836d6530ee35ed83741702ab053789296fa1e4b5'
+    wandb_key = '8313110d55ea5fed8cc6c79759666d5cbe845464'
     if wandb_key:
         log.info("Setting W&B API key...")
         wandb.login(key=wandb_key)

@@ -1,7 +1,7 @@
 _target_: src.models.diffusion.LatentDiffusionModule
 
 use_ema: true
-num_timesteps: 500
+num_timesteps: 1000
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -13,15 +13,23 @@ scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   _partial_: true
   T_max: 100
-  eta_min: 1e-6
+  eta_min: 1e-7
 
-encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/encoder.pth # both
-decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/decoder.pth # both
-vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/vq_layer.pth # both
-model_path: ${paths.root_dir}/src/ckpt/latent_diffusion/unet_ldm64.pth
-# encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/encoder.pth # healthy only
-# decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/decoder.pth # healthy only
-# vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/healthy/vq_layer.pth # healthy only
+# encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/encoder.pth # both
+# decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/decoder.pth # both
+# vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/vq_layer_512.pth # both
+# model_path: ${paths.root_dir}/src/ckpt/latent_diffusion/unet_ldm64.pth
+
+vae_net_path: None
+encoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/encoder.pth 
+decoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/decoder.pth 
+vq_layer_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/vq_layer_1024.pth 
+model_path: ${paths.root_dir}/src/ckpt_s256/latent_diffusion/unet_ldm64_1000step.pth 
+
+# model_path: ${paths.root_dir}/src/ckpt/latent_diffusion/unet_ldm64_v2.pth
+# encoder_path: ${paths.root_dir}/src/ckpt/vq_vae/healthy/encoder.pth # healthy only
+# decoder_path: ${paths.root_dir}/src/ckpt/vq_vae/healthy/decoder.pth # healthy only
+# vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae/healthy/vq_layer.pth # healthy only
 
 vae:
   _target_: src.models.vae.net.VQVAE
@@ -34,8 +42,8 @@ vae:
     base_channels: 64
     block: Residual
     n_layer_blocks: 1
-    drop_rate: 0.1
-    channel_multipliers: [2, 4]
+    drop_rate: 0.0
+    channel_multipliers: [1, 2, 4]
     attention: Attention
     n_attention_heads: null
     n_attention_layers: null
@@ -55,10 +63,10 @@ vae:
     n_attention_heads: ${model.vae.encoder.n_attention_heads}
     n_attention_layers: ${model.vae.encoder.n_attention_layers}
 
-  latent_dims: [4, 32, 32]  # Adjusted to match the configuration
+  latent_dims: [4, 64, 64]  # Adjusted to match the configuration
 
   vq_layer:
     _target_: src.models.vae.net.VectorQuantizer
-    num_embeddings: 256
+    num_embeddings: 1024
     embedding_dim: ${model.vae.latent_dims[0]}
     beta: 0.25

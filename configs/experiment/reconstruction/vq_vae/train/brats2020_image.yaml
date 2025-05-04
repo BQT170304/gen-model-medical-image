@@ -19,32 +19,33 @@ task_name: "reconstruction_vqvae/train"
 
 trainer:
   precision: "32"
-  max_epochs: 200
-  devices: [1]
+  max_epochs: 50
+  devices: [3]
   accelerator: gpu
   gradient_clip_algorithm: "value"
-  gradient_clip_val: 1
+  gradient_clip_val: 0.5
   num_sanity_val_steps: 0
 
 data:
-  batch_size: 8
+  batch_size: 4
   num_workers: 16
-  image_size: 128
+  image_size: 256
 
 model:
   net:
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
       base_channels: 64
-      channel_multipliers: [2, 4]
+      channel_multipliers: [1, 2, 4]
     latent_dims: [4, 64, 64]
     vq_layer:
       embedding_dim: ${model.net.latent_dims[0]}
-      num_embeddings: 512
+      num_embeddings: 1024
+      beta: 0.25
 
 logger:
   wandb:
-    name: "vqvae_brats2020_z64_healthy"
+    name: "vqvae_brats2020_h_s256_z64"
     project: "reconstruction_vqvae"
     tags: ${tags}
     group: ${data.dataset_name}
@@ -53,8 +54,8 @@ logger:
 ckpt_path: null # simply provide checkpoint path to resume training
 
 callbacks:
-  gen_sample:
-    grid_shape: [1, 1]
+  # gen_sample:
+  #   grid_shape: [1, 1]
   reconstruction:
     metrics:
       metric_list:

@@ -10,10 +10,10 @@ defaults:
 # train_val_test_dir: ["train/image", "val/image", "test/image"] # only healthy
 data_dir: /data/hpc/qtung/data/ # for vae and sample
 train_val_test_dir: ["train", "val", "test"] # for vae and sample
-# train_val_test_split: [0.8, 0.1, 0.1]
+# # train_val_test_split: [0.8, 0.1, 0.1]
 batch_size: 1
 num_workers: 8
 pin_memory: True
 dataset_name: brats2020
 n_classes: -1
-image_size: 128
+image_size: 256

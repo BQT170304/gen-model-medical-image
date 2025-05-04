@@ -1,7 +1,7 @@
 _target_: src.models.classifier_module.ClassifierModule
 
 use_latent: true
-num_timesteps: 500
+num_timesteps: 1000
 
 optimizer:
   _target_: torch.optim.AdamW
@@ -16,10 +16,10 @@ scheduler:
   eta_min: 1e-6
 
 # Paths to model weights
-encoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/encoder.pth # both encoder
-decoder_path: ${paths.root_dir}/src/ckpt/vq_vae64/decoder.pth # both decoder
-vq_layer_path: ${paths.root_dir}/src/ckpt/vq_vae64/vq_layer.pth
-classifier_path: ${paths.root_dir}/src/ckpt/classifier/classifier_ldm64.pth
+encoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/encoder.pth 
+decoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/decoder.pth 
+vq_layer_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/vq_layer_1024.pth
+classifier_path: ${paths.root_dir}/src/ckpt_s256/classifier/classifier_ldm64_1000step.pth
 
 # VAE configuration
 vae:
@@ -34,7 +34,7 @@ vae:
     block: Residual
     n_layer_blocks: 1
     drop_rate: 0.1
-    channel_multipliers: [2, 4]
+    channel_multipliers: [1, 2, 4]
     attention: Attention
     n_attention_heads: null
     n_attention_layers: null

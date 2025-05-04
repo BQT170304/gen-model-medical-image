@@ -3,7 +3,7 @@ defaults:
   - model_summary.yaml
   - tqdm_progress_bar.yaml
   - lr_monitor.yaml
-  - gen_sample.yaml
+  # - gen_sample.yaml
   - metrics.yaml
   - _self_
 

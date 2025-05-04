@@ -19,8 +19,8 @@ task_name: "classification"
 
 trainer:
   precision: "32"
-  max_epochs: 200
-  devices: [3]
+  max_epochs: 25
+  devices: [1]
   accelerator: gpu
   gradient_clip_algorithm: "value"
   gradient_clip_val: 0.5
@@ -29,32 +29,33 @@ trainer:
 data:
   batch_size: 16
   num_workers: 16
-  image_size: 128
+  image_size: 256
 
 model:
   use_latent: true
-  num_timesteps: 100
+  num_timesteps: 1000
   
   vae:
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
       base_channels: 64
-      channel_multipliers: [2, 4]
+      channel_multipliers: [1, 2, 4]
     latent_dims: [4, 64, 64]
     vq_layer:
       embedding_dim: ${model.vae.latent_dims[0]}
-      num_embeddings: 256
+      num_embeddings: 1024
+      beta: 0.25
   
   optimizer:
     lr: 1e-4
   
   scheduler:
-    T_max: 200
-    eta_min: 1e-6
+    T_max: 25
+    eta_min: 5e-6
 
 logger:
   wandb:
-    name: "classification_brats2020"
+    name: "classification_brats2020_h_s256_z64_1000step"
     project: "classification"
     tags: ${tags}
     group: ${data.dataset_name}

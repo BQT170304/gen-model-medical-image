@@ -11,15 +11,17 @@ seed: 12345
 data:
   batch_size: 1
   num_workers: 4
-  image_size: 128
+  image_size: 256
 
 classifier:
-  path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt/classifier/classifier_ldm64.pth
+  use_classifier: true
+  path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/classifier/classifier_ldm64_1000step.pth
   scale: 100.0  # Scale for classifier guidance
   use_label: true  
 
 sampling:
-  num_samples: 15
-  save_dir: /data/hpc/qtung/gen-model-boilerplate/results/cldm/brats2020
-  noise_level: 100  # Level of noise to add during sampling
+  num_samples: 25
+  # save_dir: /data/hpc/qtung/gen-model-boilerplate/results/ldm_s256/brats2020_z64_no_classifier  # No classifier
+  save_dir: /data/hpc/qtung/gen-model-boilerplate/results/cldm_s256/brats2020_z64_1000_noise250
+  noise_level: 250
   skip_normal: true 

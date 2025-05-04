@@ -27,6 +27,9 @@ class VAEModule(pl.LightningModule):
         optimizer: Optimizer,
         scheduler: lr_scheduler,
         criterion: nn.Module,
+        encoder_path: str,
+        decoder_path: str,
+        vq_layer_path: str = None,
         use_ema: bool = False,
         compile: bool = False,
     ) -> None:
@@ -51,6 +54,10 @@ class VAEModule(pl.LightningModule):
         # VAE
         self.net = net
 
+        # self.net.encoder.load_state_dict(torch.load(self.hparams.encoder_path))
+        # self.net.decoder.load_state_dict(torch.load(self.hparams.decoder_path))
+        # if isinstance(self.net.vq_layer, nn.Module):
+        #     self.net.vq_layer.load_state_dict(torch.load(self.hparams.vq_layer_path))
 
         assert isinstance(criterion, (MSELoss, SoftBCEWithLogitsLoss)), \
             NotImplementedError(f"only implemented for [MSELoss, SoftBCEWithLogitsLoss]")
@@ -216,16 +223,16 @@ class VAEModule(pl.LightningModule):
             print("SAVED!")
             torch.save(
                 self.net.encoder.state_dict(), 
-                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/encoder.pth"
+                self.hparams.encoder_path
             )
             torch.save(
                 self.net.decoder.state_dict(), 
-                f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/decoder.pth"
+                self.hparams.decoder_path
             )
             if isinstance(self.net.vq_layer, nn.Module):
                 torch.save(
                     self.net.vq_layer.state_dict(), 
-                    f"/data/hpc/qtung/gen-model-boilerplate/src/ckpt/vq_vae64/healthy/vq_layer.pth"
+                    self.hparams.vq_layer_path
                 )
 
     def test_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> None:

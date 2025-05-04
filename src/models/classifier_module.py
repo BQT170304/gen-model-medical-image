@@ -94,15 +94,16 @@ class ClassifierModule(pl.LightningModule):
         # Create classifier model and diffusion
         args_dict = classifier_and_diffusion_defaults()
         args_dict.update({"image_size": 64})
+        args_dict.update({"diffusion_steps": self.hparams.num_timesteps})
         
         self.classifier, self.diffusion = create_classifier_and_diffusion(
             **args_dict
         )
         
-        # Load pre-trained classifier weights if path is provided
-        if classifier_path and os.path.exists(classifier_path):
-            self.classifier.load_state_dict(torch.load(classifier_path))
-            print(f"Loaded classifier weights from {classifier_path}")
+        # # Load pre-trained classifier weights if path is provided
+        # if classifier_path and os.path.exists(classifier_path):
+        #     self.classifier.load_state_dict(torch.load(classifier_path))
+        #     print(f"Loaded classifier weights from {classifier_path}")
         
         # Create schedule sampler
         self.schedule_sampler = create_named_schedule_sampler(
@@ -159,11 +160,11 @@ class ClassifierModule(pl.LightningModule):
         # Convert to latent representation if using VAE
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
-                latents, _ = self.vae.encode(imgs.float())
-                _max = latents.max()
-                _min = latents.min()
-                latents = (latents - _min) / (_max - _min)  # [0, 1]
-                latents = 2 * latents - 1  # [-1, 1]
+                latents = self.vae.encode(imgs.float())
+                # _max = latents.max()
+                # _min = latents.min()
+                # latents = (latents - _min) / (_max - _min)  # [0, 1]
+                # latents = 2 * latents - 1  # [-1, 1]
                 
                 imgs = latents
         
@@ -173,9 +174,11 @@ class ClassifierModule(pl.LightningModule):
         # Calculate loss
         loss = self.criterion(logits, labels)
         
+        preds = torch.argmax(logits, dim=1)
+        
         # Update and log metrics
         self.train_loss(loss)
-        self.train_acc(logits, labels)
+        self.train_acc(preds, labels)
         
         self.log("train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True)
         self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True)
@@ -194,11 +197,11 @@ class ClassifierModule(pl.LightningModule):
         # Convert to latent representation if using VAE
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
-                latents, _ = self.vae.encode(imgs.float())
-                _max = latents.max()
-                _min = latents.min()
-                latents = (latents - _min) / (_max - _min)  # [0, 1]
-                latents = 2 * latents - 1  # [-1, 1]
+                latents = self.vae.encode(imgs.float())
+                # _max = latents.max()
+                # _min = latents.min()
+                # latents = (latents - _min) / (_max - _min)  # [0, 1]
+                # latents = 2 * latents - 1  # [-1, 1]
                 
                 imgs = latents
         
@@ -213,7 +216,7 @@ class ClassifierModule(pl.LightningModule):
         
         # Update and log metrics
         self.val_loss(loss)
-        self.val_acc(logits, labels)
+        self.val_acc(preds, labels)
         self.precision(preds, labels)
         self.recall(preds, labels)
         self.f1(preds, labels)
@@ -269,11 +272,11 @@ class ClassifierModule(pl.LightningModule):
         # Convert to latent representation if using VAE
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
-                latents, _ = self.vae.encode(imgs.float())
-                _max = latents.max()
-                _min = latents.min()
-                latents = (latents - _min) / (_max - _min)  # [0, 1]
-                latents = 2 * latents - 1  # [-1, 1]
+                latents = self.vae.encode(imgs.float())
+                # _max = latents.max()
+                # _min = latents.min()
+                # latents = (latents - _min) / (_max - _min)  # [0, 1]
+                # latents = 2 * latents - 1  # [-1, 1]
                 
                 imgs = latents
         
@@ -283,9 +286,11 @@ class ClassifierModule(pl.LightningModule):
         # Calculate loss
         loss = self.criterion(logits, labels)
         
+        preds = torch.argmax(logits, dim=1)
+        
         # Update and log metrics
         self.test_loss(loss)
-        self.test_acc(logits, labels)
+        self.test_acc(preds, labels)
         
         self.log("test/loss", self.test_loss, on_step=False, on_epoch=True)
         self.log("test/acc", self.test_acc, on_step=False, on_epoch=True)
@@ -309,11 +314,11 @@ class ClassifierModule(pl.LightningModule):
         # Convert to latent representation if using VAE
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
-                latents, _ = self.vae.encode(imgs.float())
-                _max = latents.max()
-                _min = latents.min()
-                latents = (latents - _min) / (_max - _min)  # [0, 1]
-                latents = 2 * latents - 1  # [-1, 1]
+                latents = self.vae.encode(imgs.float())
+                # _max = latents.max()
+                # _min = latents.min()
+                # latents = (latents - _min) / (_max - _min)  # [0, 1]
+                # latents = 2 * latents - 1  # [-1, 1]
                 
                 imgs = latents
         

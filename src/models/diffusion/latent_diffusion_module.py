@@ -24,9 +24,6 @@ from src.models.guided_diffusion.script_util import (
     create_model_and_diffusion,
     args_to_dict,
 )
-wandb_key = '836d6530ee35ed83741702ab053789296fa1e4b5'
-if wandb_key:
-    wandb.login(key=wandb_key)
     
 def dice_score(ground_truth, prediction):
     """
@@ -63,9 +60,9 @@ def iou_score(ground_truth, prediction):
     iou = intersection / (union + 1e-7)  # add small epsilon to avoid division by zero
     return iou
 
-def morphology_close(mask, kernel_size=5, min_size=50):
+def morphology(mask, kernel_size=9, min_size=50):
     """
-    Apply morphological closing and remove small objects from binary mask.
+    Apply morphological closing and opening and remove small objects from binary mask.
     
     Parameters:
         mask (numpy.ndarray): Binary mask (0-255, uint8)
@@ -77,11 +74,22 @@ def morphology_close(mask, kernel_size=5, min_size=50):
     """
     assert mask.dtype == np.uint8, "Mask must be uint8"
     
+    mask = cv2.GaussianBlur(mask, (5, 5), 0)
     # Tạo kernel hình elip
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kernel_size, kernel_size))
-    # Áp dụng phép đóng (Morphological Closing)
-    closed_mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    # Morphological open + close
+    opened_mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    # closed_mask = cv2.morphologyEx(opened_mask, cv2.MORPH_CLOSE, kernel)
+    closed_mask = opened_mask
+
     return closed_mask
+
+def percentile_threshold(diff_map, mask):
+    percentile = (1 - np.count_nonzero(mask) / mask.size) * 100
+    print(f"Percentile: {percentile}")
+    threshold_value = np.percentile(diff_map, percentile)
+    thresholded = np.where(diff_map > threshold_value, diff_map, 0)
+    return thresholded
     
 class LatentDiffusionModule(pl.LightningModule):
     def __init__(
@@ -89,12 +97,13 @@ class LatentDiffusionModule(pl.LightningModule):
         vae: BaseVAE,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
+        vae_net_path: str,
         encoder_path: str,
         decoder_path: str,
         vq_layer_path: str,
         model_path: str = None,    
         use_ema: bool = False,
-        num_timesteps: int = 1000,
+        num_timesteps: int = 100,
     ) -> None:
         """Initialize the LatentDiffusionModule.
 
@@ -121,17 +130,21 @@ class LatentDiffusionModule(pl.LightningModule):
         self.vae = vae
         
         # Load pre-trained weights if paths are provided
-        if os.path.exists(encoder_path):
-            self.vae.encoder.load_state_dict(torch.load(encoder_path))
-            print("Loaded encoder weights")
-        
-        if os.path.exists(decoder_path):
-            self.vae.decoder.load_state_dict(torch.load(decoder_path))
-            print("Loaded decoder weights")
-        
-        if os.path.exists(vq_layer_path):
-            self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
-            print("Loaded VQ layer weights")
+        if vae_net_path and os.path.exists(vae_net_path):
+            self.vae.load_state_dict(torch.load(vae_net_path))
+            print("Loaded VAE weights")
+        else:
+            if os.path.exists(encoder_path):
+                self.vae.encoder.load_state_dict(torch.load(encoder_path))
+                print("Loaded encoder weights")
+            
+            if os.path.exists(decoder_path):
+                self.vae.decoder.load_state_dict(torch.load(decoder_path))
+                print("Loaded decoder weights")
+            
+            if os.path.exists(vq_layer_path):
+                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
+                print("Loaded VQ layer weights")
             
         self.vae.eval()
         # Freeze VAE 
@@ -142,8 +155,10 @@ class LatentDiffusionModule(pl.LightningModule):
         defaults = self.get_default_args()
         args_dict = model_and_diffusion_defaults()
         args_dict.update(defaults)
-        self.image_size = args_dict["image_size"]
-        # print("args_dict: ", args_dict)
+        self.image_size = 64 if '64' in model_path else 32
+        args_dict["image_size"] = self.image_size
+        args_dict["num_channels"] = 2 * self.image_size
+        print("args_dict: ", args_dict)
         self.model, self.diffusion = create_model_and_diffusion(
             **args_dict
         )
@@ -174,15 +189,21 @@ class LatentDiffusionModule(pl.LightningModule):
         defaults = dict(
             use_fp16=False,
             dataset='brats',
-            image_size=64,
-            num_channels=128,
+            image_size=64, # 32
+            num_channels=128, # 64
             class_cond=True,
             dropout=0.0,
             learn_sigma=False,
-            diffusion_steps=500,
+            diffusion_steps=self.hparams.num_timesteps,
             noise_schedule="linear",
             # timestep_respacing="ddim500",
         )
+        
+        # defaults = dict(
+        #     # noise_level=100,
+        #     class_cond = True,
+        #     timestep_respacing = 'ddim1000'
+        # )
         
         return defaults
     
@@ -251,6 +272,7 @@ class LatentDiffusionModule(pl.LightningModule):
         # Encode images to latent space
         with torch.no_grad():
             latents = self.vae.encode(imgs.float())
+            latents = torch.clamp(latents, -1, 1)
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
             # _min = latents.min()
@@ -278,7 +300,8 @@ class LatentDiffusionModule(pl.LightningModule):
         
         # Encode images to latent space
         with torch.no_grad():
-            latents = self.vae.encode(imgs.float())       
+            latents = self.vae.encode(imgs.float())     
+            latents = torch.clamp(latents, -1, 1)  
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
             # _min = latents.min()
@@ -301,7 +324,8 @@ class LatentDiffusionModule(pl.LightningModule):
         
         # Encode images to latent space
         with torch.no_grad():
-            latents = self.vae.encode(imgs.float())       
+            latents = self.vae.encode(imgs.float())  
+            latents = torch.clamp(latents, -1, 1)     
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
             # _min = latents.min()
@@ -322,9 +346,9 @@ class LatentDiffusionModule(pl.LightningModule):
             self.best_val_loss = self.val_loss.compute()
             print("SAVED!")
             if self.image_size == 64:
-                save_path = "/data/hpc/qtung/gen-model-boilerplate/src/ckpt/latent_diffusion/unet_ldm64.pth"
+                save_path = self.hparams.model_path
             elif self.image_size == 32:
-                save_path = "/data/hpc/qtung/gen-model-boilerplate/src/ckpt/latent_diffusion/unet_ldm32.pth"
+                save_path = "/data/hpc/qtung/gen-model-boilerplate/src/ckpt/latent_diffusion/unet_ldm32_vq1024.pth"
             else:
                 raise ValueError("Invalid image size")
             torch.save(
@@ -359,6 +383,11 @@ class LatentDiffusionModule(pl.LightningModule):
         
         return {"optimizer": optimizer}
     
+    def rescale(self, image):
+        # convert range of image from [-1, 1] to [0, 1]
+        image = torch.clamp(image, min=-1.0, max=1.0)
+        return image * 0.5 + 0.5
+    
     def sample(self, batch, cond: Dict, classifier=None, classifier_scale=100, noise_level=500, batch_size: int = 1) -> Dict[str, Any]:
         """Generate samples using the diffusion model and calculate difftot as a binary mask.
 
@@ -373,9 +402,11 @@ class LatentDiffusionModule(pl.LightningModule):
             Dict[str, Tensor]: Dictionary containing original images, generated images, and difftot mask.
         """
         original_images = batch[0]
+        mask = batch[2]
         
         with torch.no_grad():
-            latents = self.vae.encode(original_images.float())         
+            latents = self.vae.encode(original_images.float())    
+            latents = torch.clamp(latents, -1, 1)     
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
             # _min = latents.min()
@@ -411,7 +442,7 @@ class LatentDiffusionModule(pl.LightningModule):
         # Generate samples in latent space
         samples, x_noisy, org = sample_fn(
             model_fn,
-            (batch_size, self.vae.latent_dims[0], 64, 64),  # shape
+            (batch_size, self.vae.latent_dims[0], self.image_size, self.image_size),
             org_batch,
             org=org_batch,
             clip_denoised=True,
@@ -420,42 +451,39 @@ class LatentDiffusionModule(pl.LightningModule):
             device=latents.device,
             noise_level=noise_level,
         )
-        
+
         # Decode from latent space to image space
         with torch.no_grad():
             vq_samples, _ = self.vae.vq(samples.float())
             generated_images = self.vae.decode(vq_samples)
         
-        # Normalize images to [0, 1] range for visualization
-        def normalize(img):
-            _min = img.min()
-            _max = img.max()
-            normalized_img = (img - _min)/ (_max - _min)
-            return normalized_img
-        original_images = normalize(original_images)
-        generated_images = normalize(generated_images)
+        # Rescale generated to [0, 1]
+        original_images = self.rescale(original_images)
+        generated_images = self.rescale(generated_images)
         
         # Calculate difftot (absolute difference between original and generated images)
-        difftot = torch.abs(original_images - generated_images).mean(dim=1, keepdim=True)
-        
+        difftot = torch.abs(original_images - generated_images).mean(dim=1)
+        difftot = torch.clamp(difftot, min=0, max=1)
+        print("Max difftot: ", difftot.max())
+        print("Mean difftot: ", difftot.mean())
         # Convert difftot to numpy for thresholding
-        difftot_np = difftot.squeeze().cpu().numpy()
+        difftot_np = percentile_threshold(difftot.cpu().squeeze().numpy(), mask.cpu().squeeze().numpy())
         print(f"Difftot shape: {difftot_np.shape}")
         
         difftot_masks = []
         
         if batch_size == 1:
             img_for_thresh = (difftot_np * 255).astype(np.uint8)
-            img_for_thresh = morphology_close(img_for_thresh)
+            # img_for_thresh = morphology(img_for_thresh)
             ret, thresh1 = cv2.threshold(img_for_thresh, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
-            # thresh1 = remove_small_objects(thresh1.astype(bool), min_size=50, connectivity=5).astype(np.uint8) * 255
-            print(f"Otsu threshold value: {ret}")
-            difftot_masks.append(thresh1)
+            clean = remove_small_objects(thresh1.astype(bool), min_size=30)
+            thresh = thresh1 * clean
+            difftot_masks.append(thresh)
         else:
             # Loop through each image in the batch
             for i in range(batch_size): 
                 img_for_thresh = (difftot_np[i] * 255).astype(np.uint8) 
-                img_for_thresh = morphology_close(img_for_thresh)
+                img_for_thresh = morphology(img_for_thresh)
                 ret, thresh1 = cv2.threshold(img_for_thresh, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
                 # thresh1 = remove_small_objects(thresh1.astype(bool), min_size=50, connectivity=5).astype(np.uint8) * 255
                 # print(f"Image {i} Otsu threshold value: {ret}")
@@ -467,8 +495,10 @@ class LatentDiffusionModule(pl.LightningModule):
 
         return {
             "latents": latents,
+            "original_images": original_images,
             "generated_images": generated_images,
-            "difftot": difftot_mask,
+            "difftot": difftot_np,
+            "difftot_mask": difftot_mask,
         }
 
 if __name__ == "__main__":

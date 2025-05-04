@@ -1,0 +1,500 @@
+Sample 0:
+  original_mean: 0.06006389856338501
+  generated_mean: 0.08024086058139801
+  mean_ratio: 1.3359249830245972
+  original_median: 0.07018238306045532
+  generated_median: 0.00024847686290740967
+  original_std: 0.20289553701877594
+  generated_std: 0.17290309071540833
+  original_range: [-0.71830106, 0.8562496]
+  generated_range: [0.0, 0.8787619]
+Sample 0:
+  original_mean: 0.06006389856338501
+  generated_mean: 0.08044138550758362
+  mean_ratio: 1.3392634391784668
+  original_median: 0.07018238306045532
+  generated_median: 0.0002256631851196289
+  original_std: 0.20289553701877594
+  generated_std: 0.17328327894210815
+  original_range: [-0.71830106, 0.8562496]
+  generated_range: [0.0, 0.8723566]
+Sample 1:
+  original_mean: 0.060228317975997925
+  generated_mean: 0.07475206255912781
+  mean_ratio: 1.2411447763442993
+  original_median: 0.06672575324773788
+  generated_median: 0.000298231840133667
+  original_std: 0.20101279020309448
+  generated_std: 0.1655205637216568
+  original_range: [-0.9341718, 0.8902366]
+  generated_range: [0.0, 0.83478093]
+Sample 1:
+  original_mean: 0.060228317975997925
+  generated_mean: 0.0746842622756958
+  mean_ratio: 1.2400190830230713
+  original_median: 0.06672575324773788
+  generated_median: 0.0002979785203933716
+  original_std: 0.20101279020309448
+  generated_std: 0.16514018177986145
+  original_range: [-0.9341718, 0.8902366]
+  generated_range: [0.0, 0.8499857]
+Sample 2:
+  original_mean: 0.06039911508560181
+  generated_mean: 0.08620309084653854
+  mean_ratio: 1.4272243976593018
+  original_median: 0.06687911599874496
+  generated_median: 0.000288158655166626
+  original_std: 0.20508773624897003
+  generated_std: 0.18024416267871857
+  original_range: [-0.803604, 0.806371]
+  generated_range: [0.0, 0.90385425]
+Sample 2:
+  original_mean: 0.06039911508560181
+  generated_mean: 0.08557868748903275
+  mean_ratio: 1.4168864488601685
+  original_median: 0.06687911599874496
+  generated_median: 0.0002788752317428589
+  original_std: 0.20508773624897003
+  generated_std: 0.1789911985397339
+  original_range: [-0.803604, 0.806371]
+  generated_range: [0.0, 0.902632]
+Sample 3:
+  original_mean: 0.06177835166454315
+  generated_mean: 0.08806712180376053
+  mean_ratio: 1.425533652305603
+  original_median: 0.06714893877506256
+  generated_median: 0.00020998716354370117
+  original_std: 0.2040157914161682
+  generated_std: 0.18156899511814117
+  original_range: [-0.8836704, 0.75787884]
+  generated_range: [0.0, 0.9081404]
+Sample 3:
+  original_mean: 0.06177835166454315
+  generated_mean: 0.08878973871469498
+  mean_ratio: 1.4372305870056152
+  original_median: 0.06714893877506256
+  generated_median: 0.0001653730869293213
+  original_std: 0.2040157914161682
+  generated_std: 0.1828289031982422
+  original_range: [-0.8836704, 0.75787884]
+  generated_range: [0.0, 0.9007821]
+Sample 4:
+  original_mean: 0.06516635417938232
+  generated_mean: 0.08930052071809769
+  mean_ratio: 1.370347023010254
+  original_median: 0.0742688700556755
+  generated_median: 0.00036278367042541504
+  original_std: 0.19785059988498688
+  generated_std: 0.17626263201236725
+  original_range: [-0.7050235, 0.75232255]
+  generated_range: [0.0, 0.8423705]
+Sample 4:
+  original_mean: 0.06516635417938232
+  generated_mean: 0.08816608041524887
+  mean_ratio: 1.3529386520385742
+  original_median: 0.0742688700556755
+  generated_median: 0.0003286004066467285
+  original_std: 0.19785059988498688
+  generated_std: 0.17463698983192444
+  original_range: [-0.7050235, 0.75232255]
+  generated_range: [0.0, 0.84252805]
+Sample 5:
+  original_mean: 0.06494154036045074
+  generated_mean: 0.029348963871598244
+  mean_ratio: 0.451928973197937
+  original_median: 0.07226307690143585
+  generated_median: 0.0
+  original_std: 0.16300979256629944
+  generated_std: 0.1109229102730751
+  original_range: [-0.97038764, 0.91153264]
+  generated_range: [0.0, 0.84453034]
+Sample 5:
+  original_mean: 0.06494154036045074
+  generated_mean: 0.02926512435078621
+  mean_ratio: 0.45063796639442444
+  original_median: 0.07226307690143585
+  generated_median: 0.0
+  original_std: 0.16300979256629944
+  generated_std: 0.1105700135231018
+  original_range: [-0.97038764, 0.91153264]
+  generated_range: [0.0, 0.8417909]
+Sample 0:
+  original_mean: 0.06006389856338501
+  generated_mean: 0.08097095787525177
+  mean_ratio: 1.3480802774429321
+  original_median: 0.07018238306045532
+  generated_median: 0.00029937922954559326
+  original_std: 0.20289553701877594
+  generated_std: 0.17376047372817993
+  original_range: [-0.71830106, 0.8562496]
+  generated_range: [0.0, 0.86229265]
+Sample 0:
+  original_mean: 0.06006389856338501
+  generated_mean: 0.08056151866912842
+  mean_ratio: 1.3412635326385498
+  original_median: 0.07018238306045532
+  generated_median: 0.0002415478229522705
+  original_std: 0.20289553701877594
+  generated_std: 0.17416489124298096
+  original_range: [-0.71830106, 0.8562496]
+  generated_range: [0.0, 0.88183916]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.08070450276136398
+  mean_ratio: 0.885614275932312
+  original_median: 0.0
+  generated_median: 0.00017219781875610352
+  original_std: 0.19424298405647278
+  generated_std: 0.17371296882629395
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.88194895]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.08082976192235947
+  mean_ratio: 0.8869888186454773
+  original_median: 0.0
+  generated_median: 0.00027364492416381836
+  original_std: 0.19424298405647278
+  generated_std: 0.17406143248081207
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.8619827]
+Sample 1:
+  original_mean: 0.08600614219903946
+  generated_mean: 0.07444564253091812
+  mean_ratio: 0.865585207939148
+  original_median: 0.0
+  generated_median: 0.0002567023038864136
+  original_std: 0.18923792243003845
+  generated_std: 0.16507317125797272
+  original_range: [0.0, 0.9380366]
+  generated_range: [0.0, 0.8507832]
+Sample 1:
+  original_mean: 0.08600614219903946
+  generated_mean: 0.07501127570867538
+  mean_ratio: 0.872161865234375
+  original_median: 0.0
+  generated_median: 0.0002851039171218872
+  original_std: 0.18923792243003845
+  generated_std: 0.165413498878479
+  original_range: [0.0, 0.9380366]
+  generated_range: [0.0, 0.84344417]
+Sample 2:
+  original_mean: 0.09693730622529984
+  generated_mean: 0.08634140342473984
+  mean_ratio: 0.8906932473182678
+  original_median: 0.0
+  generated_median: 0.00027611851692199707
+  original_std: 0.19938848912715912
+  generated_std: 0.1800590604543686
+  original_range: [0.0, 0.9705285]
+  generated_range: [0.0, 0.9144556]
+Sample 2:
+  original_mean: 0.09693730622529984
+  generated_mean: 0.08664719760417938
+  mean_ratio: 0.8938478231430054
+  original_median: 0.0
+  generated_median: 0.00026601552963256836
+  original_std: 0.19938848912715912
+  generated_std: 0.1808726042509079
+  original_range: [0.0, 0.9705285]
+  generated_range: [0.0, 0.91864187]
+Sample 3:
+  original_mean: 0.09911839663982391
+  generated_mean: 0.08860763162374496
+  mean_ratio: 0.8939574956893921
+  original_median: 0.0
+  generated_median: 0.00017207860946655273
+  original_std: 0.2002623975276947
+  generated_std: 0.18254691362380981
+  original_range: [0.0, 0.9575038]
+  generated_range: [0.0, 0.9011811]
+Sample 3:
+  original_mean: 0.09911839663982391
+  generated_mean: 0.08816677331924438
+  mean_ratio: 0.8895096778869629
+  original_median: 0.0
+  generated_median: 0.00020575523376464844
+  original_std: 0.2002623975276947
+  generated_std: 0.18166480958461761
+  original_range: [0.0, 0.9575038]
+  generated_range: [0.0, 0.8762499]
+Sample 4:
+  original_mean: 0.09936988353729248
+  generated_mean: 0.08886339515447617
+  mean_ratio: 0.8942688703536987
+  original_median: 0.0
+  generated_median: 0.00032636523246765137
+  original_std: 0.1938745379447937
+  generated_std: 0.17635662853717804
+  original_range: [0.0, 0.9453276]
+  generated_range: [0.0, 0.8550018]
+Sample 4:
+  original_mean: 0.09936988353729248
+  generated_mean: 0.08876505494117737
+  mean_ratio: 0.8932792544364929
+  original_median: 0.0
+  generated_median: 0.00034669041633605957
+  original_std: 0.1938745379447937
+  generated_std: 0.1762332320213318
+  original_range: [0.0, 0.9453276]
+  generated_range: [0.0, 0.86044633]
+Sample 5:
+  original_mean: 0.03355439007282257
+  generated_mean: 0.029208499938249588
+  mean_ratio: 0.8704822063446045
+  original_median: 0.0
+  generated_median: 0.0
+  original_std: 0.12564636766910553
+  generated_std: 0.11052989214658737
+  original_range: [0.0, 0.9544102]
+  generated_range: [0.0, 0.84462595]
+Sample 5:
+  original_mean: 0.03355439007282257
+  generated_mean: 0.029235368594527245
+  mean_ratio: 0.8712829947471619
+  original_median: 0.0
+  generated_median: 0.0
+  original_std: 0.12564636766910553
+  generated_std: 0.11043796688318253
+  original_range: [0.0, 0.9544102]
+  generated_range: [0.0, 0.8472256]
+Sample 6:
+  original_mean: 0.1072140634059906
+  generated_mean: 0.10601510107517242
+  mean_ratio: 0.9888170957565308
+  original_median: 0.0
+  generated_median: 0.0002832859754562378
+  original_std: 0.19964741170406342
+  generated_std: 0.19516418874263763
+  original_range: [0.0, 0.9768564]
+  generated_range: [0.0, 0.8922336]
+Sample 6:
+  original_mean: 0.1072140634059906
+  generated_mean: 0.10491673648357391
+  mean_ratio: 0.9785725474357605
+  original_median: 0.0
+  generated_median: 0.00033858418464660645
+  original_std: 0.19964741170406342
+  generated_std: 0.19428695738315582
+  original_range: [0.0, 0.9768564]
+  generated_range: [0.0, 0.90249217]
+Sample 7:
+  original_mean: 0.1027073934674263
+  generated_mean: 0.09545314311981201
+  mean_ratio: 0.9293697476387024
+  original_median: 0.0
+  generated_median: 0.00034908950328826904
+  original_std: 0.19561254978179932
+  generated_std: 0.18290090560913086
+  original_range: [0.0, 0.9501445]
+  generated_range: [0.0, 0.8862588]
+Sample 7:
+  original_mean: 0.1027073934674263
+  generated_mean: 0.09498953819274902
+  mean_ratio: 0.9248558878898621
+  original_median: 0.0
+  generated_median: 0.00036491453647613525
+  original_std: 0.19561254978179932
+  generated_std: 0.181672140955925
+  original_range: [0.0, 0.9501445]
+  generated_range: [0.0, 0.8734273]
+Sample 8:
+  original_mean: 0.04824244976043701
+  generated_mean: 0.042040422558784485
+  mean_ratio: 0.8714404702186584
+  original_median: 0.0
+  generated_median: 0.0
+  original_std: 0.14822939038276672
+  generated_std: 0.1298591047525406
+  original_range: [0.0, 0.9264474]
+  generated_range: [0.0, 0.806314]
+Sample 8:
+  original_mean: 0.04824244976043701
+  generated_mean: 0.042086079716682434
+  mean_ratio: 0.8723868727684021
+  original_median: 0.0
+  generated_median: 1.7881393432617188e-07
+  original_std: 0.14822939038276672
+  generated_std: 0.13002339005470276
+  original_range: [0.0, 0.9264474]
+  generated_range: [0.0, 0.8031359]
+Sample 9:
+  original_mean: 0.09829923510551453
+  generated_mean: 0.08927533030509949
+  mean_ratio: 0.908199667930603
+  original_median: 0.0
+  generated_median: 0.00034356117248535156
+  original_std: 0.18959461152553558
+  generated_std: 0.17446449398994446
+  original_range: [0.0, 0.9349612]
+  generated_range: [0.0, 0.8468486]
+Sample 9:
+  original_mean: 0.09829923510551453
+  generated_mean: 0.08896487951278687
+  mean_ratio: 0.9050413966178894
+  original_median: 0.0
+  generated_median: 0.0003730952739715576
+  original_std: 0.18959461152553558
+  generated_std: 0.17431344091892242
+  original_range: [0.0, 0.9349612]
+  generated_range: [0.0, 0.8353288]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.08585488796234131
+  mean_ratio: 0.942132294178009
+  original_median: 0.0
+  generated_median: 0.0011500716209411621
+  original_std: 0.19424298405647278
+  generated_std: 0.173186257481575
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.8397856]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.08642914146184921
+  mean_ratio: 0.9484338760375977
+  original_median: 0.0
+  generated_median: 0.0011233389377593994
+  original_std: 0.19424298405647278
+  generated_std: 0.17448970675468445
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.8728777]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.0860627293586731
+  mean_ratio: 0.9444130063056946
+  original_median: 0.0
+  generated_median: 0.0011483430862426758
+  original_std: 0.19424298405647278
+  generated_std: 0.173397958278656
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.8679477]
+Sample 0:
+  original_mean: 0.09112827479839325
+  generated_mean: 0.08506468683481216
+  mean_ratio: 0.9334609508514404
+  original_median: 0.0
+  generated_median: 0.0012031793594360352
+  original_std: 0.19424298405647278
+  generated_std: 0.17090745270252228
+  original_range: [0.0, 0.9498039]
+  generated_range: [0.0, 0.84101987]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.13250690698623657
+  mean_ratio: 1.0151946544647217
+  original_median: 0.0
+  generated_median: 0.0004101395606994629
+  original_std: 0.19787806272506714
+  generated_std: 0.19798456132411957
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.94979584]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.13202686607837677
+  mean_ratio: 1.011516809463501
+  original_median: 0.0
+  generated_median: 0.00045305490493774414
+  original_std: 0.19787806272506714
+  generated_std: 0.19765955209732056
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.92277306]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.13218021392822266
+  mean_ratio: 1.012691617012024
+  original_median: 0.0
+  generated_median: 0.00040821731090545654
+  original_std: 0.19787806272506714
+  generated_std: 0.19758166372776031
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.9107789]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.132780060172081
+  mean_ratio: 1.0172873735427856
+  original_median: 0.0
+  generated_median: 0.00041757524013519287
+  original_std: 0.19787806272506714
+  generated_std: 0.19863608479499817
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.9525769]
+Sample 107:
+  original_mean: 0.13153746724128723
+  generated_mean: 0.1306755542755127
+  mean_ratio: 0.9934474229812622
+  original_median: 0.0
+  generated_median: 0.0001855790615081787
+  original_std: 0.20693998038768768
+  generated_std: 0.2030734419822693
+  original_range: [0.0, 0.9151951]
+  generated_range: [0.0, 0.9059584]
+Sample 107:
+  original_mean: 0.13153746724128723
+  generated_mean: 0.13120520114898682
+  mean_ratio: 0.997473955154419
+  original_median: 0.0
+  generated_median: 0.00018946826457977295
+  original_std: 0.20693998038768768
+  generated_std: 0.20396366715431213
+  original_range: [0.0, 0.9151951]
+  generated_range: [0.0, 0.9623821]
+Sample 108:
+  original_mean: 0.12569722533226013
+  generated_mean: 0.12703533470630646
+  mean_ratio: 1.0106455087661743
+  original_median: 0.0
+  generated_median: 0.00021123886108398438
+  original_std: 0.19504980742931366
+  generated_std: 0.1953067183494568
+  original_range: [0.0, 0.9147168]
+  generated_range: [0.0, 0.8829713]
+Sample 108:
+  original_mean: 0.12569722533226013
+  generated_mean: 0.12707455456256866
+  mean_ratio: 1.0109574794769287
+  original_median: 0.0
+  generated_median: 0.00025872886180877686
+  original_std: 0.19504980742931366
+  generated_std: 0.1951133906841278
+  original_range: [0.0, 0.9147168]
+  generated_range: [0.0, 0.87248576]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.13039563596248627
+  mean_ratio: 0.999019205570221
+  original_median: 0.0
+  generated_median: 0.000498160719871521
+  original_std: 0.19787806272506714
+  generated_std: 0.19645781815052032
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.98030233]
+Sample 101:
+  original_mean: 0.1305236518383026
+  generated_mean: 0.12972106039524078
+  mean_ratio: 0.9938510060310364
+  original_median: 0.0
+  generated_median: 0.0005283653736114502
+  original_std: 0.19787806272506714
+  generated_std: 0.1959230750799179
+  original_range: [0.0, 0.9791359]
+  generated_range: [0.0, 0.9775752]
+Sample 107:
+  original_mean: 0.13153746724128723
+  generated_mean: 0.12887315452098846
+  mean_ratio: 0.9797448515892029
+  original_median: 0.0
+  generated_median: 0.0002686828374862671
+  original_std: 0.20693998038768768
+  generated_std: 0.20255273580551147
+  original_range: [0.0, 0.9151951]
+  generated_range: [0.0, 0.86614466]
+Sample 107:
+  original_mean: 0.13153746724128723
+  generated_mean: 0.12913194298744202
+  mean_ratio: 0.9817122220993042
+  original_median: 0.0
+  generated_median: 0.0002536773681640625
+  original_std: 0.20693998038768768
+  generated_std: 0.2027502954006195
+  original_range: [0.0, 0.9151951]
+  generated_range: [0.0, 0.8745522]
