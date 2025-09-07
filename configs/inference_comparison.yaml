@@ -1,0 +1,11 @@
+
+defaults:
+  - data: brats2020
+
+data:
+  batch_size: 1
+  num_workers: 4
+
+output_dir: /data/hpc/qtung/gen-model-boilerplate/results/inference_comparison_2
+num_samples: 20
+skip_normal: true

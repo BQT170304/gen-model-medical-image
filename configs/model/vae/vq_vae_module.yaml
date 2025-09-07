@@ -14,9 +14,9 @@ scheduler:
   T_max: 50
   eta_min: 1e-6
 
-encoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/encoder.pth # both
-decoder_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/decoder.pth # both
-vq_layer_path: ${paths.root_dir}/src/ckpt_s256/vq_vae/vq_layer_1024.pth # both
+encoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae_both/encoder.pth # both
+decoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae_both/decoder.pth # both
+vq_layer_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae_both/vq_layer_1024.pth # both
 
 net:
   _target_: src.models.vae.net.VQVAE
@@ -25,7 +25,7 @@ net:
     _target_: src.models.components.up_down.Encoder
 
     in_channels: 4  # Adjusted to match BRATS2020 dataset
-    z_channels: ${model.net.latent_dims[0]}
+    z_channels: ${net.latent_dims[0]}
     base_channels: 64
     block: Residual
     n_layer_blocks: 1
@@ -39,23 +39,23 @@ net:
   decoder:
     _target_: src.models.components.up_down.Decoder
 
-    out_channels: ${model.net.encoder.in_channels}
-    z_channels: ${model.net.latent_dims[0]}
-    base_channels: ${model.net.encoder.base_channels}
-    block: ${model.net.encoder.block}
-    n_layer_blocks: ${model.net.encoder.n_layer_blocks}
-    drop_rate: ${model.net.encoder.drop_rate}
-    channel_multipliers: ${model.net.encoder.channel_multipliers}
-    attention: ${model.net.encoder.attention}
-    n_attention_heads: ${model.net.encoder.n_attention_heads}
-    n_attention_layers: ${model.net.encoder.n_attention_layers}
+    out_channels: ${net.encoder.in_channels}
+    z_channels: ${net.latent_dims[0]}
+    base_channels: ${net.encoder.base_channels}
+    block: ${net.encoder.block}
+    n_layer_blocks: ${net.encoder.n_layer_blocks}
+    drop_rate: ${net.encoder.drop_rate}
+    channel_multipliers: ${net.encoder.channel_multipliers}
+    attention: ${net.encoder.attention}
+    n_attention_heads: ${net.encoder.n_attention_heads}
+    n_attention_layers: ${net.encoder.n_attention_layers}
 
   latent_dims: [4, 32, 32]  # Adjusted to match the configuration
 
   vq_layer:
     _target_: src.models.vae.net.VectorQuantizer
-    num_embeddings: 512
-    embedding_dim: ${model.net.latent_dims[0]}
+    num_embeddings: 1024
+    embedding_dim: ${net.latent_dims[0]}
     beta: 0.25
 
 criterion: 

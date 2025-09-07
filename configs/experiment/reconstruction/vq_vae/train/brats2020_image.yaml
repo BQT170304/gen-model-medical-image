@@ -20,7 +20,7 @@ task_name: "reconstruction_vqvae/train"
 trainer:
   precision: "32"
   max_epochs: 50
-  devices: [3]
+  devices: [0]
   accelerator: gpu
   gradient_clip_algorithm: "value"
   gradient_clip_val: 0.5
@@ -45,7 +45,7 @@ model:
 
 logger:
   wandb:
-    name: "vqvae_brats2020_h_s256_z64"
+    name: "vqvae_brats2020_both_s256_z64"
     project: "reconstruction_vqvae"
     tags: ${tags}
     group: ${data.dataset_name}
