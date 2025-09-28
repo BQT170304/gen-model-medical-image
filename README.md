@@ -13,7 +13,7 @@ This repository is a boilerplate for implementing and experimenting with various
 ## **2. Setup and Usage 🚀**
 
   ### **Clone the repository**
-    https://github.com/BQT170304/gen-model-boilerplate
+    https://github.com/BQT170304/gen-model-medical-image
     
   ### **Install environment packages**
     cd gen-model-boilerplate
