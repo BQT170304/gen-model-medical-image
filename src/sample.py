@@ -137,7 +137,7 @@ def visualize_and_save(sample, org, number, mask):
 
     # Adjust layout and save the figure
     plt.tight_layout()
-    plt.savefig(f'/data/hpc/minhdd/anomaly/src/sample_ldm/visualized_images_{number}.png')
+    plt.savefig(f'/home/tqlong/minhdd/anomaly/src/sample_ldm/visualized_images_{number}.png')
     plt.show()
 
     return dice, iou
@@ -146,8 +146,8 @@ def main():
     vae = False
     if vae == True:
         # Load the state dictionaries
-        encoder_state_dict = th.load("/data/hpc/minhdd/anomaly/src/vae2/encoder2_0.00006756.pth")
-        decoder_state_dict = th.load("/data/hpc/minhdd/anomaly/src/vae2/decoder2_0.00006756.pth")
+        encoder_state_dict = th.load("/home/tqlong/minhdd/anomaly/src/vae2/encoder2_0.00006756.pth")
+        decoder_state_dict = th.load("/home/tqlong/minhdd/anomaly/src/vae2/decoder2_0.00006756.pth")
 
         # Instantiate the models
         in_channels = 4
@@ -198,8 +198,8 @@ def main():
         **args_to_dict(args, model_and_diffusion_defaults().keys())
     )
    
-    # model = th.load("/data/hpc/minhdd/anomaly/src/diffusion/openai_unet_diffusion_dice_0.6893_iou_0.5552.pth")
-    model_state_dict = th.load("/data/hpc/minhdd/anomaly/src/diffusion/openai_unet_diffusion1_dice_0.0023_iou_0.0012.pth")
+    # model = th.load("/home/tqlong/minhdd/anomaly/src/diffusion/openai_unet_diffusion_dice_0.6893_iou_0.5552.pth")
+    model_state_dict = th.load("/home/tqlong/minhdd/anomaly/src/diffusion/openai_unet_diffusion1_dice_0.0023_iou_0.0012.pth")
     model.load_state_dict(model_state_dict)
     model.to(dist_util.dev())
     if args.use_fp16:
@@ -212,7 +212,7 @@ def main():
     # decoder.eval()
 
     logger.log("loading classifier...")
-    classifier = th.load('/data/hpc/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
+    classifier = th.load('/home/tqlong/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
 
     
     ds = BraTS2020DatasetClassifier(args.data_dir, mode="test")
@@ -366,9 +366,9 @@ def main():
         print("IoU Score:", iou)
         # sample = sample.cpu().numpy()
         # org = org.cpu().numpy()
-        # np.save(f'/data/hpc/minhdd/anomaly/src/sample/sample_{number}', sample)
-        # np.save(f'/data/hpc/minhdd/anomaly/src/sample/org_{number}', org)
-        # np.save(f'/data/hpc/minhdd/anomaly/src/sample/mask_{number}', mask)
+        # np.save(f'/home/tqlong/minhdd/anomaly/src/sample/sample_{number}', sample)
+        # np.save(f'/home/tqlong/minhdd/anomaly/src/sample/org_{number}', org)
+        # np.save(f'/home/tqlong/minhdd/anomaly/src/sample/mask_{number}', mask)
         
 
         
@@ -410,7 +410,7 @@ def main():
 
 def create_argparser():
     defaults = dict(
-        data_dir="/data/hpc/minhdd/anomaly/data",
+        data_dir="/home/tqlong/minhdd/anomaly/data",
         clip_denoised=True,
         num_samples=25,
         batch_size=1,

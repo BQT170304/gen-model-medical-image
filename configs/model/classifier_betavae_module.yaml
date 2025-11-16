@@ -1,0 +1,58 @@
+_target_: src.models.classifier_module.ClassifierModule
+
+use_latent: true
+num_timesteps: 1000
+
+optimizer:
+  _target_: torch.optim.AdamW
+  _partial_: true
+  lr: 5e-4
+  weight_decay: 1e-5
+
+scheduler:
+  _target_: torch.optim.lr_scheduler.CosineAnnealingLR
+  _partial_: true
+  T_max: 200
+  eta_min: 1e-6
+
+# Paths to model weights
+encoder_path: ${paths.root_dir}/src/ckpt_s256/beta_vae/encoder.pth
+decoder_path: ${paths.root_dir}/src/ckpt_s256/beta_vae/decoder.pth
+classifier_path: ${paths.root_dir}/src/ckpt_s256/classifier/classifier_betavae_1000step.pth
+
+# VAE configuration (Beta-VAE based)
+vae:
+  _target_: src.models.vae.net.VanillaVAE
+
+  kld_weight: 0.0005 # al_img.shape[0]/ self.num_train_images
+
+  encoder:
+    _target_: src.models.components.up_down.Encoder
+
+    in_channels: 4  # Adjusted to match BRATS2020 dataset
+    z_channels: 4
+    base_channels: 64
+    block: Residual
+    n_layer_blocks: 1
+    drop_rate: 0.1
+    channel_multipliers: [1, 2, 4]
+    attention: Attention
+    n_attention_heads: null
+    n_attention_layers: null
+    double_z: true
+
+  decoder:
+    _target_: src.models.components.up_down.Decoder
+
+    out_channels: 4  # Changed from ${..vae.encoder.in_channels} to explicit value
+    z_channels: 4
+    base_channels: 64  # Changed from ${..vae.encoder.base_channels} to explicit value
+    block: Residual  # Changed from ${..vae.encoder.block} to explicit value
+    n_layer_blocks: 1  # Changed from ${..vae.encoder.n_layer_blocks} to explicit value
+    drop_rate: 0.1  # Changed from ${..vae.encoder.drop_rate} to explicit value
+    channel_multipliers: [1, 2, 4]  # Changed from ${..vae.encoder.channel_multipliers} to explicit value
+    attention: Attention  # Changed from ${..vae.encoder.attention} to explicit value
+    n_attention_heads: null  # Changed from ${..vae.encoder.n_attention_heads} to explicit value
+    n_attention_layers: null  # Changed from ${..vae.encoder.n_attention_layers} to explicit value
+
+  latent_dims: [4, 64, 64]  # Beta-VAE latent dimensions

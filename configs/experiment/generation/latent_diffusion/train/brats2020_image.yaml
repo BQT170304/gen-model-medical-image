@@ -20,14 +20,14 @@ task_name: "generation_latent_diffusion/train"
 trainer:
   precision: "32"
   max_epochs: 50
-  devices: [1]
+  devices: [0]
   accelerator: gpu
   gradient_clip_algorithm: "value"
   gradient_clip_val: 0.5
   num_sanity_val_steps: 0
 
 data:
-  batch_size: 8
+  batch_size: 16
   num_workers: 16
   image_size: 256
 
@@ -36,15 +36,24 @@ model:
   num_timesteps: 1000
   
   vae:
+    kld_weight: 0.0005
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
-      channel_multipliers: [1, 2, 4]
       base_channels: 64
+      channel_multipliers: [1, 2, 4]
+      double_z: true
+      
     latent_dims: [4, 64, 64]
-    vq_layer:
-      embedding_dim: ${model.vae.latent_dims[0]}
-      num_embeddings: 1024
-      beta: 0.25
+  # vae:
+  #   encoder:
+  #     in_channels: 4  # 4 channels for BRATS2020 dataset
+  #     channel_multipliers: [1, 2, 4]
+  #     base_channels: 64
+  #   latent_dims: [4, 64, 64]
+  #   vq_layer:
+  #     embedding_dim: ${model.vae.latent_dims[0]}
+  #     num_embeddings: 1024
+  #     beta: 0.25
   
   optimizer:
     lr: 1e-4

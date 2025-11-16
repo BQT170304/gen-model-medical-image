@@ -77,7 +77,7 @@ class BraTS2020Dataset(Dataset):
 
 if __name__ == "__main__":
     dataset = BraTS2020Dataset(
-        data_dir='/data/hpc/minhdd/anomaly/data/',
+        data_dir='/home/tqlong/minhdd/anomaly/data/',
         train_val_test_dir='test/image',
     )
     print(len(dataset))

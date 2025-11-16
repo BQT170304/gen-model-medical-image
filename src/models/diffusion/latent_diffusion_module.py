@@ -100,7 +100,7 @@ class LatentDiffusionModule(pl.LightningModule):
         vae_net_path: str,
         encoder_path: str,
         decoder_path: str,
-        vq_layer_path: str,
+        vq_layer_path: str = None,
         model_path: str = None,    
         use_ema: bool = False,
         num_timesteps: int = 100,
@@ -135,21 +135,23 @@ class LatentDiffusionModule(pl.LightningModule):
             print("Loaded VAE weights")
         else:
             if os.path.exists(encoder_path):
-                self.vae.encoder.load_state_dict(torch.load(encoder_path))
+                self.vae.encoder.load_state_dict(torch.load(encoder_path, map_location="cuda:0"))
                 print("Loaded encoder weights")
             
             if os.path.exists(decoder_path):
-                self.vae.decoder.load_state_dict(torch.load(decoder_path))
+                self.vae.decoder.load_state_dict(torch.load(decoder_path, map_location="cuda:0"))
                 print("Loaded decoder weights")
             
-            if os.path.exists(vq_layer_path):
-                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
+            if vq_layer_path and os.path.exists(vq_layer_path):
+                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path, map_location="cuda:0"))
                 print("Loaded VQ layer weights")
             
         self.vae.eval()
         # Freeze VAE 
         for param in self.vae.parameters():
             param.requires_grad = False
+        
+        self.model_path = model_path
             
         # Create diffusion model
         defaults = self.get_default_args()
@@ -163,7 +165,7 @@ class LatentDiffusionModule(pl.LightningModule):
             **args_dict
         )
         if model_path is not None and os.path.exists(model_path):
-            self.model.load_state_dict(torch.load(model_path))
+            self.model.load_state_dict(torch.load(model_path, map_location="cuda:0"))
             print("Loaded diffusion model weights")
         
         # Create the schedule sampler
@@ -272,6 +274,8 @@ class LatentDiffusionModule(pl.LightningModule):
         # Encode images to latent space
         with torch.no_grad():
             latents = self.vae.encode(imgs.float())
+            if isinstance(latents, tuple):
+                latents = latents[0]
             latents = torch.clamp(latents, -1, 1)
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
@@ -301,7 +305,9 @@ class LatentDiffusionModule(pl.LightningModule):
         # Encode images to latent space
         with torch.no_grad():
             latents = self.vae.encode(imgs.float())     
-            latents = torch.clamp(latents, -1, 1)  
+            if isinstance(latents, tuple):
+                latents = latents[0] 
+            latents = torch.clamp(latents, -1, 1) 
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
             # _min = latents.min()
@@ -325,6 +331,8 @@ class LatentDiffusionModule(pl.LightningModule):
         # Encode images to latent space
         with torch.no_grad():
             latents = self.vae.encode(imgs.float())  
+            if isinstance(latents, tuple):
+                latents = latents[0]
             latents = torch.clamp(latents, -1, 1)     
             # # Normalize latents to [-1, 1]
             # _max = latents.max()
@@ -346,9 +354,9 @@ class LatentDiffusionModule(pl.LightningModule):
             self.best_val_loss = self.val_loss.compute()
             print("SAVED!")
             if self.image_size == 64:
-                save_path = self.hparams.model_path
+                save_path = self.model_path
             elif self.image_size == 32:
-                save_path = "/data/hpc/qtung/gen-model-boilerplate/src/ckpt/latent_diffusion/unet_ldm32_vq1024.pth"
+                save_path = self.model_path
             else:
                 raise ValueError("Invalid image size")
             torch.save(
@@ -405,7 +413,9 @@ class LatentDiffusionModule(pl.LightningModule):
         mask = batch[2]
         
         with torch.no_grad():
-            latents = self.vae.encode(original_images.float())    
+            latents = self.vae.encode(original_images.float()) 
+            if isinstance(latents, tuple):
+                latents = latents[0] 
             latents = torch.clamp(latents, -1, 1)     
             # # Normalize latents to [-1, 1]
             # _max = latents.max()

@@ -67,8 +67,8 @@ class LatentUnetDiffusionModule(L.LightningModule):
         self.args = args
 
         # Load the state dictionaries
-        encoder_state_dict = torch.load("/data/hpc/minhdd/anomaly/src/vae2/encoder2_0.00006756.pth")
-        decoder_state_dict = torch.load("/data/hpc/minhdd/anomaly/src/vae2/decoder2_0.00006756.pth")
+        encoder_state_dict = torch.load("/home/tqlong/minhdd/anomaly/src/vae2/encoder2_0.00006756.pth")
+        decoder_state_dict = torch.load("/home/tqlong/minhdd/anomaly/src/vae2/decoder2_0.00006756.pth")
         if self.args.path is not None:
             model_state_dict = torch.load(self.args.path)
             self.model.load_state_dict(model_state_dict)
@@ -121,7 +121,7 @@ class LatentUnetDiffusionModule(L.LightningModule):
         for param in self.decoder.parameters():
             param.requires_grad = False
 
-        # self.model = torch.load('/data/hpc/minhdd/anomaly/src/latent/openai_unet_latent1_epoch_9.pth')
+        # self.model = torch.load('/home/tqlong/minhdd/anomaly/src/latent/openai_unet_latent1_epoch_9.pth')
 
         self.criterion = self.diffusion.training_losses
 
@@ -139,7 +139,7 @@ class LatentUnetDiffusionModule(L.LightningModule):
         )
 
         # logger.log("loading classifier...")
-        # self.class_test = torch.load('/data/hpc/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
+        # self.class_test = torch.load('/home/tqlong/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
         # self.class_test.to(dist_util.dev())
         # self.class_test.eval()
 
@@ -175,6 +175,8 @@ class LatentUnetDiffusionModule(L.LightningModule):
         imgs, cond, _, labels = batch
         orig_imgs = imgs
         imgs = self.encoder(imgs.float())
+        if isinstance(imgs, tuple):
+            imgs = imgs[0]
         _max = imgs.max()
         _min = imgs.min()
 
@@ -194,6 +196,8 @@ class LatentUnetDiffusionModule(L.LightningModule):
         imgs, cond, mask, labels = batch
         orig_imgs = imgs
         imgs = self.encoder(imgs.float())
+        if isinstance(imgs, tuple):
+            imgs = imgs[0]
         _max = imgs.max()
         _min = imgs.min()
 

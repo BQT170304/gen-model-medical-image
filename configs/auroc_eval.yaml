@@ -1,0 +1,36 @@
+defaults:
+  - _self_
+  - /data: brats2020.yaml
+  - /model: diffusion/latent_diffusion_module.yaml 
+  - /paths: default.yaml
+
+task_name: "auroc_evaluation"
+tags: ["evaluation", "auroc", "anomaly_detection"]
+seed: 12345
+
+data:
+  batch_size: 1
+  num_workers: 4
+  image_size: 256
+
+classifier:
+  use_classifier: true
+  path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/classifier/classifier_ldm64_1000step.pth
+  scale: 100.0 # Scale for classifier guidance (s)
+  use_label: true  
+
+sampling:
+  num_samples: 1 # samples per image
+  save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/auroc_evaluation
+  noise_level: 200  # L
+  skip_normal: true
+
+evaluation:
+  max_samples: 1000  # Maximum number of samples to process
+  
+# VQ-VAE model paths (if use_vqvae is true)
+vqvae:
+  config_path: /home/tqlong/qtung/gen-model-boilerplate/configs/model/vae/vq_vae_module.yaml
+  encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/encoder.pth
+  decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/decoder.pth
+  vq_layer_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/vq_layer_1024.pth

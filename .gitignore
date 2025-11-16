@@ -166,3 +166,5 @@ results*
 *.ckpt
 *.pth
 *.pt
+
+*.png

@@ -63,7 +63,7 @@ class UnetDiffusionModule(L.LightningModule):
             **args_to_dict(args, model_and_diffusion_defaults().keys())
         )
 
-        # self.model = torch.load('/data/hpc/minhdd/anomaly/src/diffusion/openai_unet_diffusion_dice_0.2541_iou_0.0863.pth')
+        # self.model = torch.load('/home/tqlong/minhdd/anomaly/src/diffusion/openai_unet_diffusion_dice_0.2541_iou_0.0863.pth')
 
         self.criterion = self.diffusion.training_losses
 
@@ -81,7 +81,7 @@ class UnetDiffusionModule(L.LightningModule):
         )
 
         # logger.log("loading classifier...")
-        self.class_test = torch.load('/data/hpc/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
+        self.class_test = torch.load('/home/tqlong/minhdd/anomaly/src/classifier/openai_unet_classifier_cross4.pth')
         self.class_test.to(dist_util.dev())
         self.class_test.eval()
         

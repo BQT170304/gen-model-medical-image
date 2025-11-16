@@ -18,25 +18,25 @@ seed: 12345
 task_name: "reconstruction_vae/train"
 
 trainer:
-  precision: "16-mixed" 
-  max_epochs: 300
-  devices: [0]
+  precision: "32" 
+  max_epochs: 50
+  devices: [3]
   accelerator: gpu
   gradient_clip_algorithm: "value"
-  gradient_clip_val: 0.5
+  gradient_clip_val: 0.1
   num_sanity_val_steps: 0
 
 data:
-  batch_size: 16
+  batch_size: 8
   num_workers: 20
-  image_size: 128
+  image_size: 256
 
 model:
   net:
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
       base_channels: 64
-    latent_dims: [4, 32, 32] 
+    latent_dims: [4, 64, 64] 
 
 logger:
   wandb:
@@ -56,5 +56,3 @@ callbacks:
       metric_list:
         - ssim
         - psnr
-        - dice
-        - iou

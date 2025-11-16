@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: brats2020.yaml
-  - override /model: classifier_module.yaml
+  - override /model: classifier_betavae_module.yaml  # Changed from classifier_module.yaml
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
   - override /logger: wandb.yaml
@@ -18,13 +18,14 @@ seed: 12345
 task_name: "classification"
 
 trainer:
-  precision: "32"
+  precision: 32
   max_epochs: 25
-  devices: [1]
-  accelerator: gpu
+  devices: [0]
+  accelerator: "gpu"
   gradient_clip_algorithm: "value"
   gradient_clip_val: 0.5
   num_sanity_val_steps: 0
+
 
 data:
   batch_size: 16
@@ -36,15 +37,14 @@ model:
   num_timesteps: 1000
   
   vae:
+    kld_weight: 0.0005
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
       base_channels: 64
       channel_multipliers: [1, 2, 4]
+      double_z: true
+      
     latent_dims: [4, 64, 64]
-    vq_layer:
-      embedding_dim: ${model.vae.latent_dims[0]}
-      num_embeddings: 1024
-      beta: 0.25
   
   optimizer:
     lr: 1e-4
@@ -59,6 +59,5 @@ logger:
     project: "classification"
     tags: ${tags}
     group: ${data.dataset_name}
-    id: null 
+    id: null
 
-  

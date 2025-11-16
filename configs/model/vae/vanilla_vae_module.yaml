@@ -3,21 +3,24 @@ _target_: src.models.vae.VAEModule
 use_ema: true
 
 optimizer:
-  _target_: torch.optim.Adam
+  _target_: torch.optim.AdamW
   _partial_: true
-  lr: 1e-4
-  weight_decay: 0.0
+  lr: 5e-5
+  weight_decay: 1e-5
 
 scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
   _partial_: true
-  T_max: 100
-  eta_min: 2e-6
+  T_max: 50
+  eta_min: 1e-6
+
+encoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/vae/encoder.pth
+decoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/vae/decoder.pth
 
 net:
   _target_: src.models.vae.net.VanillaVAE
 
-  kld_weight: 0.0005 # al_img.shape[0]/ self.num_train_images
+  kld_weight: 1 # al_img.shape[0]/ self.num_train_images
 
   encoder:
     _target_: src.models.components.up_down.Encoder
@@ -48,7 +51,7 @@ net:
     n_attention_heads: ${model.net.encoder.n_attention_heads}
     n_attention_layers: ${model.net.encoder.n_attention_layers}
 
-  latent_dims: [4, 32, 32]
+  latent_dims: [4, 64, 64]
 
 criterion: 
   _target_: torch.nn.MSELoss

@@ -6,10 +6,10 @@ defaults:
   - transform_val: brats2020.yaml
   - _self_
 
-# data_dir: /data/hpc/qtung/gen-model-boilerplate/data/ # only healthy
+# data_dir: /home/tqlong/qtung/gen-model-boilerplate/data/ # only healthy
 # train_val_test_dir: ["train/image", "val/image", "test/image"] # only healthy
-data_dir: /data/hpc/qtung/data/ # for vae and sample
-train_val_test_dir: ["train", "val", "test"] # for vae and sample
+data_dir: /home/tqlong/qtung/data/ # data full for classifier + sampling
+train_val_test_dir: ["train", "val", "test"] # data full for classifier + sampling
 # # train_val_test_split: [0.8, 0.1, 0.1]
 batch_size: 1
 num_workers: 8

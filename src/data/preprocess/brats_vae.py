@@ -14,7 +14,7 @@ from torch.utils.data import Dataset
 
 random.seed(55)
 
-data_dir = '/data/hpc/minhdd/anomaly/data'
+data_dir = '/home/tqlong/minhdd/anomaly/data'
 dataset_dir = 'brats-2020'
 
 # Define train, val, test directories

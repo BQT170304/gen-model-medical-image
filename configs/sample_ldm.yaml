@@ -15,13 +15,13 @@ data:
 
 classifier:
   use_classifier: true
-  path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/classifier/classifier_ldm64_1000step.pth
+  path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/classifier/classifier_ldm64_1000step.pth
   scale: 100.0 # Scale for classifier guidance (s)
   use_label: true  
 
 sampling:
   num_samples: 25
-  # save_dir: /data/hpc/qtung/gen-model-boilerplate/results/ldm_s256/brats2020_z64_no_classifier  # No classifier
-  save_dir: /data/hpc/qtung/gen-model-boilerplate/results/inference_comparison
+  # save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/ldm_s256/brats2020_z64_no_classifier  # No classifier
+  save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/inference_comparison_v2
   noise_level: 200  # L
   skip_normal: true 

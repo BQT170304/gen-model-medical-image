@@ -1,11 +1,11 @@
 # @package _global_
 
 # to execute this experiment run:
-# python src/train.py experiment=reconstruction/vq_vae/train/brats2020_image
+# python src/train.py experiment=reconstruction/beta_vae/train/brats2020_image
 
 defaults:
   - override /data: brats2020.yaml
-  - override /model: vae/vq_vae_module.yaml  
+  - override /model: vae/beta_vae_module.yaml  # Changed to beta VAE module
   - override /callbacks: reconstruction.yaml
   - override /trainer: default.yaml
   - override /logger: wandb.yaml
@@ -15,20 +15,20 @@ defaults:
 
 seed: 12345
 
-task_name: "reconstruction_vqvae/train"
+task_name: "reconstruction_vae/train"
 
 trainer:
-  precision: "32"
+  precision: "32" 
   max_epochs: 50
-  devices: [2]
+  devices: [0]
   accelerator: gpu
   gradient_clip_algorithm: "value"
-  gradient_clip_val: 0.5
+  gradient_clip_val: 0.1
   num_sanity_val_steps: 0
 
 data:
   batch_size: 4
-  num_workers: 16
+  num_workers: 20
   image_size: 256
 
 model:
@@ -36,17 +36,12 @@ model:
     encoder:
       in_channels: 4  # 4 channels for BRATS2020 dataset
       base_channels: 64
-      channel_multipliers: [1, 2, 4]
-    latent_dims: [4, 64, 64]
-    vq_layer:
-      embedding_dim: ${model.net.latent_dims[0]}
-      num_embeddings: 1024
-      beta: 0.25
+    latent_dims: [4, 64, 64] 
 
 logger:
   wandb:
-    name: "vqvae_brats2020_both_s256_z64"
-    project: "reconstruction_vqvae"
+    name: "beta_vae_brats2020_CosineAnnealingWR"
+    project: "reconstruction_beta_vae"
     tags: ${tags}
     group: ${data.dataset_name}
     id: null # pass correct id to resume experiment! (if ckpt_path is not null)
@@ -54,8 +49,8 @@ logger:
 ckpt_path: null # simply provide checkpoint path to resume training
 
 callbacks:
-  # gen_sample:
-  #   grid_shape: [1, 1]
+  gen_sample:
+    grid_shape: [5, 5]
   reconstruction:
     metrics:
       metric_list:

@@ -73,17 +73,19 @@ class ClassifierModule(pl.LightningModule):
         self.use_latent = use_latent
         
         if self.use_latent and self.vae is not None:
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            print(f"Using device for VAE: {device}")
             # Load pre-trained VAE weights if paths are provided
             if encoder_path and os.path.exists(encoder_path):
-                self.vae.encoder.load_state_dict(torch.load(encoder_path))
+                self.vae.encoder.load_state_dict(torch.load(encoder_path, map_location=device))
                 print(f"Loaded encoder weights from {encoder_path}")
             
             if decoder_path and os.path.exists(decoder_path):
-                self.vae.decoder.load_state_dict(torch.load(decoder_path))
+                self.vae.decoder.load_state_dict(torch.load(decoder_path, map_location=device))
                 print(f"Loaded decoder weights from {decoder_path}")
             
             if hasattr(self.vae, 'vq_layer') and vq_layer_path and os.path.exists(vq_layer_path):
-                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path))
+                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path, map_location=device))
                 print(f"Loaded VQ layer weights from {vq_layer_path}")
                 
             # Set VAE to evaluation mode and freeze its parameters
@@ -161,19 +163,17 @@ class ClassifierModule(pl.LightningModule):
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
                 latents = self.vae.encode(imgs.float())
-                # _max = latents.max()
-                # _min = latents.min()
-                # latents = (latents - _min) / (_max - _min)  # [0, 1]
-                # latents = 2 * latents - 1  # [-1, 1]
-                
-                imgs = latents
+                # Handle double_z: if tuple (mu, logvar), take mu
+                if isinstance(latents, tuple):
+                    imgs = latents[0]  # mu
+                else:
+                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
         
         # Calculate loss
         loss = self.criterion(logits, labels)
-        
         preds = torch.argmax(logits, dim=1)
         
         # Update and log metrics
@@ -198,20 +198,17 @@ class ClassifierModule(pl.LightningModule):
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
                 latents = self.vae.encode(imgs.float())
-                # _max = latents.max()
-                # _min = latents.min()
-                # latents = (latents - _min) / (_max - _min)  # [0, 1]
-                # latents = 2 * latents - 1  # [-1, 1]
-                
-                imgs = latents
+                # Handle double_z: if tuple (mu, logvar), take mu
+                if isinstance(latents, tuple):
+                    imgs = latents[0]  # mu
+                else:
+                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
         
         # Calculate loss
         loss = self.criterion(logits, labels)
-        
-        # Get predictions
         preds = torch.argmax(logits, dim=1)
         
         # Update and log metrics
@@ -273,28 +270,23 @@ class ClassifierModule(pl.LightningModule):
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
                 latents = self.vae.encode(imgs.float())
-                # _max = latents.max()
-                # _min = latents.min()
-                # latents = (latents - _min) / (_max - _min)  # [0, 1]
-                # latents = 2 * latents - 1  # [-1, 1]
-                
-                imgs = latents
+                # Handle double_z: if tuple (mu, logvar), take mu
+                if isinstance(latents, tuple):
+                    imgs = latents[0]  # mu
+                else:
+                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
-        
-        # Calculate loss
         loss = self.criterion(logits, labels)
-        
         preds = torch.argmax(logits, dim=1)
         
-        # Update and log metrics
         self.test_loss(loss)
         self.test_acc(preds, labels)
         
         self.log("test/loss", self.test_loss, on_step=False, on_epoch=True)
         self.log("test/acc", self.test_acc, on_step=False, on_epoch=True)
-    
+
     def predict_step(self, batch: Any, batch_idx: int, dataloader_idx: int = 0) -> Any:
         """Prediction step.
 
@@ -309,18 +301,17 @@ class ClassifierModule(pl.LightningModule):
         if isinstance(batch, Tensor):
             imgs = batch
         else:
-            imgs = batch[0]  # Assuming first element is images
+            imgs = batch[0]
         
         # Convert to latent representation if using VAE
         if self.use_latent and self.vae is not None:
             with torch.no_grad():
                 latents = self.vae.encode(imgs.float())
-                # _max = latents.max()
-                # _min = latents.min()
-                # latents = (latents - _min) / (_max - _min)  # [0, 1]
-                # latents = 2 * latents - 1  # [-1, 1]
-                
-                imgs = latents
+                # Handle double_z: if tuple (mu, logvar), take mu
+                if isinstance(latents, tuple):
+                    imgs = latents[0]  # mu
+                else:
+                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
