@@ -1,0 +1,38 @@
+# @package _global_
+
+defaults:
+  - _self_
+  - /data: brats2020.yaml
+  - /model: vae/vq_vae_module.yaml
+  - /paths: default.yaml
+
+task_name: "reconstruction_metrics_brats2020"
+tags: ["evaluation", "reconstruction", "metrics"]
+seed: 12345
+
+data:
+  batch_size: 16
+  num_workers: 4
+  image_size: 256
+
+model:
+  # Use default BraTS2020 VQ-VAE checkpoint paths
+  encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/encoder.pth
+  decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/decoder.pth
+  vq_layer_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/vq_layer_1024.pth
+  
+  net:
+    encoder:
+      in_channels: 4  # 4 modalities for BraTS2020
+    latent_dims: [4, 64, 64]  # Match BraTS2020 VQ-VAE configuration
+    vq_layer:
+      embedding_dim: 4  # Match latent_dims[0]
+
+# Evaluation settings
+evaluation:
+  max_batches: 10  # Limit for faster evaluation, set to -1 for full dataset
+  save_dir: results/reconstruction_metrics/brats2020
+  device: cuda
+  lpips_network: alex
+  save_visuals: true  # save original vs reconstructed image grids
+  max_visuals: 16     # number of batches to visualize

@@ -7,10 +7,12 @@ from pytorch_lightning import LightningModule, Trainer
 from pytorch_lightning.callbacks import Callback
 
 from torchmetrics.image import (StructuralSimilarityIndexMeasure,
-                                PeakSignalNoiseRatio, FrechetInceptionDistance,
-                                InceptionScore)
+                                PeakSignalNoiseRatio)
+from torchmetrics.image.fid import FrechetInceptionDistance  
+from torchmetrics.image.inception import InceptionScore
 
-from torchmetrics import Dice, JaccardIndex, MeanMetric
+from torchmetrics import JaccardIndex, MeanMetric
+from torchmetrics.segmentation import DiceScore as Dice
 
 from src.models.gan import GANModule, CGANModule
 from src.models.diffusion import DiffusionModule, ConditionDiffusionModule, LatentDiffusionModule

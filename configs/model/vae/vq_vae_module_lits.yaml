@@ -14,9 +14,9 @@ scheduler:
   T_max: 50
   eta_min: 1e-6
 
-encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/encoder.pth
-decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/decoder.pth
-vq_layer_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/vq_vae/vq_layer_1024.pth
+encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/encoder.pth
+decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/decoder.pth
+vq_layer_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/vq_layer_1024.pth
 
 net:
   _target_: src.models.vae.net.VQVAE
@@ -24,7 +24,7 @@ net:
   encoder:
     _target_: src.models.components.up_down.Encoder
 
-    in_channels: 4
+    in_channels: 1
     z_channels: ${model.net.latent_dims[0]}
     base_channels: 64
     block: Residual
@@ -50,7 +50,7 @@ net:
     n_attention_heads: null
     n_attention_layers: null
 
-  latent_dims: [4, 64, 64]  # Adjusted to match the configuration
+  latent_dims: [1, 64, 64]  # Adjusted to match the configuration
 
   vq_layer:
     _target_: src.models.vae.net.VectorQuantizer

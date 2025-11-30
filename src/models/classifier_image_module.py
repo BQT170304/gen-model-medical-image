@@ -11,8 +11,6 @@ import pyrootutils
 
 pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
-from src.models.components.up_down import Encoder, Decoder
-from src.models.vae.net import BaseVAE, VQVAE
 from src.models.guided_diffusion import dist_util
 from src.models.guided_diffusion.resample import create_named_schedule_sampler
 from src.models.guided_diffusion.script_util import (
@@ -21,38 +19,26 @@ from src.models.guided_diffusion.script_util import (
     args_to_dict,
 )
 
-class ClassifierModule(pl.LightningModule):
+class ImageClassifierModule(pl.LightningModule):
     def __init__(
         self,
-        vae: Optional[BaseVAE] = None,
         optimizer: torch.optim.Optimizer = None,
         scheduler: torch.optim.lr_scheduler = None,
         num_timesteps: int = 1000,
         classifier_path: str = None,
-        encoder_path: str = None,
-        decoder_path: str = None,
-        vq_layer_path: str = None,
-        use_latent: bool = True,
         dataset: str = "brats",
     ) -> None:
-        """Initialize the Classifier Module.
+        """Initialize the Image Classifier Module.
 
         Args:
-            vae (Optional[BaseVAE]): The VAE model used for encoding to latent space.
             optimizer (torch.optim.Optimizer): The optimizer to use.
             scheduler (torch.optim.lr_scheduler): The learning rate scheduler.
             num_timesteps (int): Number of diffusion timesteps. Defaults to 1000.
             classifier_path (str): Path to save/load classifier weights. Defaults to None.
-            encoder_path (str): Path to the encoder weights. Defaults to None.
-            decoder_path (str): Path to the decoder weights. Defaults to None.
-            vq_layer_path (str): Path to the VQ layer weights. Defaults to None.
-            use_latent (bool): Whether to use latent space for classification. Defaults to True.
-            use_fp16 (bool): Whether to use mixed precision. Defaults to False.
-            class_cond (bool): Whether to use class conditioning. Defaults to True.
             dataset (str): Dataset name. Defaults to "brats".
         """
         super().__init__()
-        self.save_hyperparameters(logger=False, ignore=["vae"])
+        self.save_hyperparameters(logger=False)
         
         # Initialize metrics
         self.train_loss = MeanMetric()
@@ -69,37 +55,18 @@ class ClassifierModule(pl.LightningModule):
         self.recall = Recall(task="binary")
         self.f1 = F1Score(task="binary")
         
-        # VAE for latent space representation
-        self.vae = vae
-        self.use_latent = use_latent
-        
-        if self.use_latent and self.vae is not None:
-            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            print(f"Using device for VAE: {device}")
-            # Load pre-trained VAE weights if paths are provided
-            if encoder_path and os.path.exists(encoder_path):
-                print(f"Loading VAE encoder weights from {encoder_path}")
-                self.vae.encoder.load_state_dict(torch.load(encoder_path, map_location=device))
-                print(f"Loaded encoder weights from {encoder_path}")
-            
-            if decoder_path and os.path.exists(decoder_path):
-                self.vae.decoder.load_state_dict(torch.load(decoder_path, map_location=device))
-                print(f"Loaded decoder weights from {decoder_path}")
-            
-            if hasattr(self.vae, 'vq_layer') and vq_layer_path and os.path.exists(vq_layer_path):
-                self.vae.vq_layer.load_state_dict(torch.load(vq_layer_path, map_location=device))
-                print(f"Loaded VQ layer weights from {vq_layer_path}")
-                
-            # Set VAE to evaluation mode and freeze its parameters
-            self.vae.eval()
-            for param in self.vae.parameters():
-                param.requires_grad = False
-        
         # Create classifier model and diffusion
         args_dict = classifier_and_diffusion_defaults()
         args_dict.update({"dataset": self.hparams.dataset})
-        args_dict.update({"image_size": 64})
+        args_dict.update({"image_size": 256})  # Work with full resolution images
         args_dict.update({"diffusion_steps": self.hparams.num_timesteps})
+        args_dict.update({"classifier_use_fp16": False})
+        args_dict.update({"classifier_width": 128})
+        args_dict.update({"classifier_depth": 2})
+        args_dict.update({"classifier_attention_resolutions": "32,16,8"})
+        args_dict.update({"classifier_use_scale_shift_norm": True})
+        args_dict.update({"classifier_resblock_updown": True})
+        args_dict.update({"classifier_pool": "attention"})
         
         self.classifier, self.diffusion = create_classifier_and_diffusion(
             **args_dict
@@ -163,15 +130,6 @@ class ClassifierModule(pl.LightningModule):
             Tensor: Loss value
         """
         imgs, _, _, labels = batch
-        
-        # Convert to latent representation if using VAE
-        if self.use_latent and self.vae is not None:
-            with torch.no_grad():
-                latents = self.vae.encode(imgs.float())
-                if isinstance(latents, tuple):
-                    imgs = latents[0]  # mu
-                else:
-                    imgs = latents
     
         # Forward pass
         logits = self(imgs)
@@ -211,16 +169,6 @@ class ClassifierModule(pl.LightningModule):
             batch_idx (int): Batch index
         """
         imgs, _, _, labels = batch
-        
-        # Convert to latent representation if using VAE
-        if self.use_latent and self.vae is not None:
-            with torch.no_grad():
-                latents = self.vae.encode(imgs.float())
-                # Handle double_z: if tuple (mu, logvar), take mu
-                if isinstance(latents, tuple):
-                    imgs = latents[0]  # mu
-                else:
-                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
@@ -298,16 +246,6 @@ class ClassifierModule(pl.LightningModule):
         """
         imgs, _, _, labels = batch
         
-        # Convert to latent representation if using VAE
-        if self.use_latent and self.vae is not None:
-            with torch.no_grad():
-                latents = self.vae.encode(imgs.float())
-                # Handle double_z: if tuple (mu, logvar), take mu
-                if isinstance(latents, tuple):
-                    imgs = latents[0]  # mu
-                else:
-                    imgs = latents
-        
         # Forward pass
         logits = self(imgs)
         loss = self.criterion(logits, labels)
@@ -334,16 +272,6 @@ class ClassifierModule(pl.LightningModule):
             imgs = batch
         else:
             imgs = batch[0]
-        
-        # Convert to latent representation if using VAE
-        if self.use_latent and self.vae is not None:
-            with torch.no_grad():
-                latents = self.vae.encode(imgs.float())
-                # Handle double_z: if tuple (mu, logvar), take mu
-                if isinstance(latents, tuple):
-                    imgs = latents[0]  # mu
-                else:
-                    imgs = latents
         
         # Forward pass
         logits = self(imgs)
@@ -390,7 +318,7 @@ if __name__ == "__main__":
         # Test forward pass
         batch_size = 2
         channels = 4 if cfg.dataset == "brats" else 1
-        height, width = 64, 64
+        height, width = 256, 256
         
         x = torch.randn(batch_size, channels, height, width)
         labels = torch.randint(0, 2, (batch_size,))

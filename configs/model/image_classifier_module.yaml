@@ -1,14 +1,13 @@
-_target_: src.models.diffusion.ConditionalDiffusionModule
+_target_: src.models.ImageClassifierModule
 
 dataset: "brats"
-use_ema: true
 num_timesteps: 1000
 
 optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
-  lr: 1e-5
-  weight_decay: 1e-7
+  lr: 1e-4
+  weight_decay: 1e-6
 
 scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
@@ -16,4 +15,4 @@ scheduler:
   T_max: 100
   eta_min: 1e-6
 
-model_path: ${paths.root_dir}/src/ckpt_s256/conditional_diffusion/unet_cdm256_1000step.pth 
+classifier_path: ${paths.root_dir}/src/ckpt_s256/classifier/image_classifier_brats2020.pth

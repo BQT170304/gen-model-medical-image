@@ -16,6 +16,7 @@ from .lidc import LIDCDataset
 from .mnist import MnistDataset
 from .sketch_celeba import SketchCelebADataset
 from .sketch_coco import SketchCOCODataset
+from .lits import LiTSDataset
 
 __datasets = {
     'afhq': AFHQDataset,
@@ -36,6 +37,7 @@ __datasets = {
     'mnist': MnistDataset,
     'sketch_celeba': SketchCelebADataset,
     'sketch_coco': SketchCOCODataset,
+    'lits': LiTSDataset,
 }
 
 

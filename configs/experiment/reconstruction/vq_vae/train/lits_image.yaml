@@ -1,10 +1,10 @@
 # @package _global_
 
 # to execute this experiment run:
-# python src/train.py experiment=reconstruction/vq_vae/train/brats2020_image
+# python src/train.py experiment=reconstruction/vq_vae/train/lits_image
 
 defaults:
-  - override /data: brats2020.yaml
+  - override /data: lits.yaml
   - override /model: vae/vq_vae_module.yaml  
   - override /callbacks: reconstruction.yaml
   - override /trainer: default.yaml
@@ -27,17 +27,25 @@ trainer:
   num_sanity_val_steps: 0
 
 data:
-  batch_size: 16
+  batch_size: 8
   num_workers: 16
   image_size: 256
+  full_dataset: false  # Only healthy data for reconstruction training
 
 model:
+  encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/encoder.pth
+  decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/decoder.pth
+  vq_layer_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/vq_vae/vq_layer_1024.pth
   net:
     encoder:
-      in_channels: 4  # 4 channels for BRATS2020 dataset
+      in_channels: 1  # 1 channel for LiTS grayscale images
+      z_channels: 1
       base_channels: 64
       channel_multipliers: [1, 2, 4]
-    latent_dims: [4, 64, 64]
+    decoder:
+      out_channels: 1  # 1 channel output for LiTS
+      z_channels: 1
+    latent_dims: [1, 64, 64]
     vq_layer:
       embedding_dim: ${model.net.latent_dims[0]}
       num_embeddings: 1024
@@ -45,7 +53,7 @@ model:
 
 logger:
   wandb:
-    name: "vqvae_brats2020_both_s256_z64"
+    name: "vqvae_lits_healthy_s256_z64"
     project: "reconstruction_vqvae"
     tags: ${tags}
     group: ${data.dataset_name}
@@ -54,8 +62,8 @@ logger:
 ckpt_path: null # simply provide checkpoint path to resume training
 
 callbacks:
-  # gen_sample:
-  #   grid_shape: [1, 1]
+  gen_sample:
+    grid_shape: [1, 1]
   reconstruction:
     metrics:
       metric_list:

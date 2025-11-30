@@ -1,1 +1,2 @@
 from .classifier_module import ClassifierModule
+from .classifier_image_module import ImageClassifierModule

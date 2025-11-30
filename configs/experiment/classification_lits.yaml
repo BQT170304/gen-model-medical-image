@@ -1,11 +1,11 @@
 # @package _global_
 
 # To execute this experiment, run:
-# python src/train.py experiment=classification
+# python src/train.py experiment=classification_lits
 
 defaults:
-  - override /data: brats2020.yaml
-  - override /model: classifier_betavae_module.yaml  # Changed from classifier_module.yaml
+  - override /data: lits.yaml
+  - override /model: classifier_module.yaml  # Use VQ-VAE classifier module
   - override /callbacks: default.yaml
   - override /trainer: default.yaml
   - override /logger: wandb.yaml
@@ -26,28 +26,37 @@ trainer:
   gradient_clip_val: 0.5
   num_sanity_val_steps: 0
 
-
 data:
   batch_size: 16
   num_workers: 16
   image_size: 256
+  full_dataset: true  # Use both healthy and unhealthy data for classification
 
 model:
+  dataset: "lits"
   use_latent: true
   num_timesteps: 1000
-  
+
+  encoder_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/encoder.pth 
+  decoder_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/decoder.pth 
+  vq_layer_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/vq_layer_1024.pth
+  classifier_path: ${paths.root_dir}/src/ckpt_lits/classifier/classifier_ldm64_200step.pth
+    
   vae:
-    kld_weight: 0.0005
     encoder:
-      in_channels: 4  # 4 channels for BRATS2020 dataset
+      in_channels: 1  # 1 channel for LiTS grayscale images
       base_channels: 64
       channel_multipliers: [1, 2, 4]
-      double_z: true
       
-    latent_dims: [4, 64, 64]
+    latent_dims: [1, 64, 64]  # Match VQ-VAE latent dimensions
+    
+    vq_layer:
+      embedding_dim: ${model.vae.latent_dims[0]}
+      num_embeddings: 1024
+      beta: 0.25
   
   optimizer:
-    lr: 1e-4
+    lr: 2e-4
   
   scheduler:
     T_max: 25
@@ -55,9 +64,8 @@ model:
 
 logger:
   wandb:
-    name: "classification_brats2020_h_s256_z64_1000step"
+    name: "classification_lits_vqvae_s256_z32_200step"
     project: "classification"
     tags: ${tags}
     group: ${data.dataset_name}
     id: null
-

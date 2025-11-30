@@ -84,6 +84,7 @@ class DiffusionDataModule(pl.LightningDataModule):
         dataset_name: str = 'mnist',
         n_classes: str = 10,
         image_size: int = 32,
+        full_dataset: bool = False,
     ) -> None:
         """
         data_dir: 

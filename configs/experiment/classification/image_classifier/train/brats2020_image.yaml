@@ -1,0 +1,66 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/train.py experiment=classification/image_classifier/train/brats2020_image
+
+defaults:
+  - override /data: brats2020.yaml
+  - override /model: image_classifier_module.yaml  
+  - override /callbacks: default.yaml
+  - override /trainer: default.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "image_classification/train"
+
+trainer:
+  precision: "32"
+  max_epochs: 50
+  devices: [0]
+  accelerator: gpu
+  gradient_clip_algorithm: "value"
+  gradient_clip_val: 0.5
+  num_sanity_val_steps: 0
+  check_val_every_n_epoch: 1
+
+data:
+  batch_size: 8
+  num_workers: 8
+  image_size: 256
+  # Use full data directory with labels for classification
+  data_dir: /home/tqlong/qtung/data/
+  train_val_test_dir: ["train", "val", "test"]
+
+model:
+  num_timesteps: 1000
+  dataset: "brats"
+  
+  optimizer:
+    lr: 1e-4
+    weight_decay: 1e-6
+
+  scheduler:
+    T_max: 100
+    eta_min: 1e-6
+
+logger:
+  wandb:
+    name: "image_classifier_brats2020_s256"
+    project: "image_classification"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null 
+
+ckpt_path: null
+
+callbacks:
+  model_checkpoint:
+  early_stopping:
+    monitor: "val/loss"
+    patience: 10
+    mode: "min"
+    verbose: True

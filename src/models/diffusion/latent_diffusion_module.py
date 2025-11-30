@@ -104,6 +104,7 @@ class LatentDiffusionModule(pl.LightningModule):
         model_path: str = None,    
         use_ema: bool = False,
         num_timesteps: int = 100,
+        dataset: str = "brats",
     ) -> None:
         """Initialize the LatentDiffusionModule.
 
@@ -158,6 +159,7 @@ class LatentDiffusionModule(pl.LightningModule):
         args_dict = model_and_diffusion_defaults()
         args_dict.update(defaults)
         self.image_size = 64 if '64' in model_path else 32
+        args_dict["dataset"] = dataset
         args_dict["image_size"] = self.image_size
         args_dict["num_channels"] = 2 * self.image_size
         print("args_dict: ", args_dict)
@@ -464,8 +466,11 @@ class LatentDiffusionModule(pl.LightningModule):
 
         # Decode from latent space to image space
         with torch.no_grad():
-            vq_samples, _ = self.vae.vq(samples.float())
-            generated_images = self.vae.decode(vq_samples)
+            if isinstance(self.vae, VQVAE):
+                vq_samples, _ = self.vae.vq(samples.float())
+                generated_images = self.vae.decode(vq_samples)
+            else:
+                generated_images = self.vae.decode(samples.float())
         
         # Rescale generated to [0, 1]
         original_images = self.rescale(original_images)

@@ -1,0 +1,83 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/train.py experiment=generation/latent_diffusion/train/lits_image
+
+defaults:
+  - override /data: lits.yaml
+  - override /model: diffusion/latent_diffusion_module.yaml  
+  - override /callbacks: generation.yaml
+  - override /trainer: default.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "generation_latent_diffusion/train"
+
+trainer:
+  precision: "32"
+  max_epochs: 50
+  devices: [0]
+  accelerator: gpu
+  gradient_clip_algorithm: "value"
+  gradient_clip_val: 0.5
+  num_sanity_val_steps: 0
+
+data:
+  batch_size: 16
+  num_workers: 16
+  image_size: 256
+  full_dataset: false  # Only healthy data for generation training
+
+model:
+  dataset: "lits"
+  use_ema: true
+  num_timesteps: 1000
+  
+  # Load pre-trained VQ-VAE components
+  encoder_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/encoder.pth
+  decoder_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/decoder.pth
+  vq_layer_path: ${paths.root_dir}/src/ckpt_lits/vq_vae/vq_layer_1024.pth
+  model_path: ${paths.root_dir}/src/ckpt_lits/latent_diffusion/unet_ldm64_1000step.pth 
+  
+  vae:
+    encoder:
+      in_channels: 1  # 1 channel for LiTS grayscale images
+      base_channels: 64
+      channel_multipliers: [1, 2, 4]
+      
+    latent_dims: [1, 64, 64]  # Match VQ-VAE latent dimensions
+    
+    vq_layer:
+      embedding_dim: ${model.vae.latent_dims[0]}
+      num_embeddings: 1024
+      beta: 0.25
+  
+  optimizer:
+    lr: 1e-4
+  
+  scheduler:
+    T_max: 50
+    eta_min: 1e-5
+
+logger:
+  wandb:
+    name: "latent_diffusion_lits_healthy_s256_z64_v2"
+    project: "generation_latent_diffusion"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null 
+
+ckpt_path: null
+
+callbacks:
+  gen_sample:
+    grid_shape: [1, 1]
+    n_ensemble: 1
+  # metrics:
+  #   n_ensemble: 1
+  #   metric_list:
+  #     - None

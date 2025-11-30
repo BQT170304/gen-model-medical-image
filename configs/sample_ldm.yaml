@@ -21,7 +21,7 @@ classifier:
 
 sampling:
   num_samples: 25
-  # save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/ldm_s256/brats2020_z64_no_classifier  # No classifier
-  save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/inference_comparison_v2
+  # save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/ldm_s256/brats2020_z64_no_classifier 
+  save_dir: /home/tqlong/qtung/gen-model-boilerplate/results/visualize_clad_brats2020
   noise_level: 200  # L
   skip_normal: true 

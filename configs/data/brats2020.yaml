@@ -10,7 +10,7 @@ defaults:
 # train_val_test_dir: ["train/image", "val/image", "test/image"] # only healthy
 data_dir: /home/tqlong/qtung/data/ # data full for classifier + sampling
 train_val_test_dir: ["train", "val", "test"] # data full for classifier + sampling
-# # train_val_test_split: [0.8, 0.1, 0.1]
+# train_val_test_split: [0.75, 0.15, 0.1]
 batch_size: 1
 num_workers: 8
 pin_memory: True

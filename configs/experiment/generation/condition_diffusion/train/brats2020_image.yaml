@@ -1,0 +1,58 @@
+# @package _global_
+
+# to execute this experiment run:
+# python src/train.py experiment=generation/condition_diffusion/train/brats2020_image
+
+defaults:
+  - override /data: brats2020.yaml
+  - override /model: diffusion/condition_diffusion_module.yaml  
+  - override /callbacks: generation.yaml
+  - override /trainer: default.yaml
+  - override /logger: wandb.yaml
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+seed: 12345
+
+task_name: "generation_condition_diffusion/train"
+
+trainer:
+  precision: "32"
+  max_epochs: 100
+  devices: [0]
+  accelerator: gpu
+  gradient_clip_algorithm: "value"
+  gradient_clip_val: 1
+  num_sanity_val_steps: 0
+
+data:
+  batch_size: 8
+  num_workers: 16
+  image_size: 256
+
+model:
+  use_ema: true
+  num_timesteps: 1000
+  
+  optimizer:
+    lr: 1e-5
+
+logger:
+  wandb:
+    name: "condition_diffusion_brats2020_h_s256"
+    project: "generation_condition_diffusion"
+    tags: ${tags}
+    group: ${data.dataset_name}
+    id: null 
+
+ckpt_path: null
+
+callbacks:
+  gen_sample:
+    grid_shape: [1, 1]
+    n_ensemble: 1
+  # metrics:
+  #   n_ensemble: 1
+  #   metric_list:
+  #     - None

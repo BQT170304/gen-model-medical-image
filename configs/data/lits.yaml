@@ -1,0 +1,18 @@
+_target_: src.data.LiTSDataModule
+# _target_: src.data.DiffusionDataModule # for vae
+
+defaults:
+  - transform_train: lits.yaml
+  - transform_val: lits.yaml
+  - _self_
+
+data_dir: /home/tqlong/qtung/gen-model-boilerplate/data/
+train_val_test_dir: ["train", "val", "test"] 
+train_val_test_split: [0.75, 0.15, 0.1]
+full_dataset: true # data full for classifier + sampling
+batch_size: 1
+num_workers: 8
+pin_memory: true
+dataset_name: lits
+n_classes: -1
+image_size: 256

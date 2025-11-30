@@ -9,7 +9,7 @@ from albumentations import Compose
 
 pyrootutils.setup_root(__file__, indicator=".project-root", pythonpath=True)
 
-from src.data.dataset.brats2020 import BraTS2020Dataset
+from src.data.dataset.lits import LiTSDataset
 
 
 class TransformDataset(Dataset):
@@ -32,26 +32,27 @@ class TransformDataset(Dataset):
         return image, cond, mask, label
 
 
-class BraTSDataModule(pl.LightningDataModule):
+class LiTSDataModule(pl.LightningDataModule):
     """
-    A DataModule for BraTS2020 dataset.
+    A DataModule for LiTS dataset.
     
-    Provides train, validation, and test dataloaders for the BraTS2020 dataset.
+    Provides train, validation, and test dataloaders for the LiTS dataset.
     """
 
     def __init__(
         self,
         data_dir: str = "./data",
-        train_val_test_dir: Tuple[str, str, str] = None,
+        train_val_test_dir: Tuple[str, str, str] = ("train", "val", "test"),
         train_val_test_split: Tuple[int, int, int] = None,
         transform_train: Optional[Compose] = None,
         transform_val: Optional[Compose] = None,
         batch_size: int = 16,
         num_workers: int = 20,
         pin_memory: bool = False,
-        dataset_name: str = 'brats2020',
-        n_classes: str = 2,
-        image_size: int = 128,
+        dataset_name: str = 'lits',
+        n_classes: int = 2,
+        image_size: int = 256,
+        full_dataset: bool = False,
     ) -> None:
         """
         Args:
@@ -63,6 +64,10 @@ class BraTSDataModule(pl.LightningDataModule):
             batch_size: Batch size for dataloaders
             num_workers: Number of worker processes for data loading
             pin_memory: Whether to pin memory during data loading
+            dataset_name: Name of the dataset (lits)
+            n_classes: Number of classes (2 for healthy/unhealthy)
+            image_size: Size of images
+            full_dataset: If True, load both healthy and unhealthy data. If False, only healthy data.
         """
         super().__init__()
 
@@ -75,7 +80,7 @@ class BraTSDataModule(pl.LightningDataModule):
 
     def prepare_data(self) -> None:
         """Download data if needed. This method is called only from a single process."""
-        # BraTS dataset doesn't need to be downloaded here as it requires manual download
+        # LiTS dataset doesn't need to be downloaded here as it requires manual download and preprocessing
         pass
     
     def get_subset(self, dataset: Dataset, n_dataset: int):
@@ -103,35 +108,39 @@ class BraTSDataModule(pl.LightningDataModule):
             self.batch_size_per_device = self.hparams.batch_size
         
         # Debug prints
-        print(f"Data dir: {self.hparams.data_dir}")
+        print(f"LiTS Data dir: {self.hparams.data_dir}")
+        print(f"Full dataset mode: {self.hparams.full_dataset}")
         
         # Load and split datasets only if not loaded already
         if not self.data_train and not self.data_val and not self.data_test:
             if self.hparams.train_val_test_dir:
                 train_dir, val_dir, test_dir = self.hparams.train_val_test_dir
                 
-                print(f"Train dir: {train_dir}")
-                print(f"Val dir: {val_dir}")
-                print(f"Test dir: {test_dir}")
+                print(f"LiTS Train dir: {train_dir}")
+                print(f"LiTS Val dir: {val_dir}")
+                print(f"LiTS Test dir: {test_dir}")
                 
                 # Create datasets for each split
-                train_set = BraTS2020Dataset(
+                train_set = LiTSDataset(
                     data_dir=self.hparams.data_dir,
-                    train_val_test_dir=train_dir
+                    train_val_test_dir=train_dir,
+                    full_dataset=self.hparams.full_dataset
                 )
-                print(f"Train set size: {len(train_set)}")
+                print(f"LiTS Train set size: {len(train_set)}")
                 
-                val_set = BraTS2020Dataset(
+                val_set = LiTSDataset(
                     data_dir=self.hparams.data_dir,
-                    train_val_test_dir=val_dir
+                    train_val_test_dir=val_dir,
+                    full_dataset=self.hparams.full_dataset
                 )
-                print(f"Val set size: {len(val_set)}")
+                print(f"LiTS Val set size: {len(val_set)}")
                 
-                test_set = BraTS2020Dataset(
+                test_set = LiTSDataset(
                     data_dir=self.hparams.data_dir,
-                    train_val_test_dir=test_dir
+                    train_val_test_dir=test_dir,
+                    full_dataset=self.hparams.full_dataset
                 )
-                print(f"Test set size: {len(test_set)}")
+                print(f"LiTS Test set size: {len(test_set)}")
                 
                 # Apply subset if specified
                 if self.hparams.train_val_test_split is not None:
@@ -143,7 +152,10 @@ class BraTSDataModule(pl.LightningDataModule):
             
             else:
                 # If no split directories provided, use a single dataset and split it
-                dataset = BraTS2020Dataset(data_dir=self.hparams.data_dir)
+                dataset = LiTSDataset(
+                    data_dir=self.hparams.data_dir,
+                    full_dataset=self.hparams.full_dataset
+                )
                 
                 if self.hparams.train_val_test_split:
                     # Use random split if proportions are provided
@@ -176,7 +188,7 @@ class BraTSDataModule(pl.LightningDataModule):
             self.data_val = TransformDataset(dataset=val_set, transform=self.hparams.transform_val)
             self.data_test = TransformDataset(dataset=test_set, transform=self.hparams.transform_val)
             
-            print(f'Train-Val-Test: {len(self.data_train)}, {len(self.data_val)}, {len(self.data_test)}')
+            print(f'LiTS Train-Val-Test: {len(self.data_train)}, {len(self.data_val)}, {len(self.data_test)}')
 
     def train_dataloader(self) -> DataLoader:
         """Create and return the train dataloader."""
@@ -229,11 +241,11 @@ if __name__ == "__main__":
     print("root: ", root)
     config_path = str(root / "configs" / "data")
 
-    @hydra.main(version_base=None, config_path=config_path, config_name="brats2020.yaml")
+    @hydra.main(version_base=None, config_path=config_path, config_name="lits.yaml")
     def main(cfg: DictConfig):
         print(cfg)
 
-        datamodule = hydra.utils.instantiate(cfg, data_dir=f"{root}/data/")
+        datamodule: LiTSDataModule = hydra.utils.instantiate(cfg, data_dir=f"{root}/data/")
         datamodule.setup()
 
         train_dataloader = datamodule.train_dataloader()
@@ -257,29 +269,19 @@ if __name__ == "__main__":
         mask = masks[0].numpy()
         label = labels[0].item()
         
-        plt.figure(figsize=(16, 8))
+        plt.figure(figsize=(12, 4))
         
-        # Display the four MRI modalities
-        plt.subplot(1, 5, 1)
-        plt.imshow(image[..., 0], cmap='gray')
-        plt.title('T1')
-        
-        plt.subplot(1, 5, 2)
-        plt.imshow(image[..., 1], cmap='gray')
-        plt.title('T1CE')
-        
-        plt.subplot(1, 5, 3)
-        plt.imshow(image[..., 2], cmap='gray')
-        plt.title('T2')
-        
-        plt.subplot(1, 5, 4)
-        plt.imshow(image[..., 3], cmap='gray')
-        plt.title('FLAIR')
+        # LiTS data is typically 2D grayscale, so we display the image and mask
+        plt.subplot(1, 2, 1)
+        plt.imshow(image, cmap='gray')
+        plt.title(f'LiTS Image (Label: {label})')
+        plt.axis('off')
         
         # Display the mask
-        plt.subplot(1, 5, 5)
+        plt.subplot(1, 2, 2)
         plt.imshow(mask, cmap='gray')
-        plt.title(f'Mask (Label: {label})')
+        plt.title(f'Mask (Max: {mask.max():.2f})')
+        plt.axis('off')
         
         plt.tight_layout()
         plt.show()

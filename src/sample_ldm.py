@@ -96,83 +96,102 @@ def iou_score(ground_truth, prediction):
     iou = intersection / (union + 1e-7)
     return iou
 
-def visualize_and_save(original, latents, generated1, generated2, difftot_mask1, difftot_mask2,
-                       ground_truth_mask, difftot, number, num_samples, save_dir):
+def visualize_and_save(original, generated, predicted_mask, ground_truth_mask, number, save_dir, dice_threshold=0.75):
     """
-    Visualize and save comparison between original, generated images and masks.
+    Save individual images for each sample in separate folders.
+    Only saves if dice score > dice_threshold.
+    
+    Args:
+        original: Input image tensor [B, 4, H, W] (4 modalities)
+        generated: Generated image tensor [B, 4, H, W]
+        predicted_mask: Predicted mask [B, H, W]
+        ground_truth_mask: Ground truth mask [H, W]
+        number: Sample index
+        save_dir: Base save directory
+        dice_threshold: Minimum dice score to save
+    
+    Returns:
+        dice_score: Computed dice score
     """
+    # Calculate dice score first
+    dice = dice_score(ground_truth_mask, predicted_mask[0])
+    
+    # Only save if dice > threshold
+    if dice < dice_threshold:
+        return dice
+    
+    # Create sample folder
+    sample_folder = os.path.join(save_dir, f'sample_{number:04d}')
+    if not os.path.exists(sample_folder):
+        os.makedirs(sample_folder)
+    
+    # Convert to CPU and numpy
     original = original.cpu()
-    generated1 = generated1.cpu()
-    generated2 = generated2.cpu()
+    generated = generated.cpu()
     
-    # Create a figure and set of subplots
-    fig, axes = plt.subplots(2, 4, figsize=(20, 10))
+    # Modality names
+    modalities = ['T1', 'T1ce', 'T2', 'FLAIR']
     
-    # Row 1: Original, Latents, Ground Truth, Difference Map
-    axes[0, 0].imshow(original[0, 0, ...].numpy(), cmap='gray')
-    axes[0, 0].set_title('Original Image')
+    # Save input images (4 modalities)
+    for i, modality in enumerate(modalities):
+        img = normalize_image(original[0, i])
+        plt.figure(figsize=(8, 8))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig(os.path.join(sample_folder, f'input_{modality}.png'), 
+                    dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
     
-    axes[0, 1].imshow(latents[0, 0, ...].cpu().numpy(), cmap='gray')
-    axes[0, 1].set_title('Latent Representation')
+    # Save output images (4 modalities)
+    for i, modality in enumerate(modalities):
+        img = normalize_image(generated[0, i])
+        plt.figure(figsize=(8, 8))
+        plt.imshow(img, cmap='gray')
+        plt.axis('off')
+        plt.tight_layout()
+        plt.savefig(os.path.join(sample_folder, f'output_{modality}.png'), 
+                    dpi=300, bbox_inches='tight', pad_inches=0)
+        plt.close()
     
-    axes[0, 2].imshow(ground_truth_mask, cmap='gray')
-    axes[0, 2].set_title('Ground Truth Mask')
-    
-    # difftot = percentile_threshold((original[0, :4, ...] - generated1[0, ...]).mean(dim=0))
-    # difftot = (original[0, :4, ...] - generated1[0, ...]).mean(dim=0)
-    axes[0, 3].imshow(difftot, cmap='plasma')
-    axes[0, 3].set_title('Difference Map')
-    
-    # Row 2: Generated1, Generated2, Difftot1, Difftot2
-    axes[1, 0].imshow(generated1[0, 0, ...].numpy(), cmap='gray')
-    axes[1, 0].set_title('Generated Image 1')
-    
-    axes[1, 1].imshow(generated2[0, 0, ...].numpy(), cmap='gray')
-    axes[1, 1].set_title('Generated Image 2')
-    
-    axes[1, 2].imshow(difftot_mask1[0], cmap='gray')
-    axes[1, 2].set_title('Thresholded Mask 1')
-    
-    axes[1, 3].imshow(difftot_mask2[0], cmap='gray')
-    axes[1, 3].set_title('Thresholded Mask 2')
-    
-    # Calculate metrics
-    dice = dice_score(ground_truth_mask, difftot_mask1)
-    iou = iou_score(ground_truth_mask, difftot_mask1)
-    dice2 = dice_score(ground_truth_mask, difftot_mask2)
-    iou2 = iou_score(ground_truth_mask, difftot_mask2)
-    and_dice = dice_score(ground_truth_mask, np.logical_and(difftot_mask1, difftot_mask2).astype(np.uint8))
-    or_dice = dice_score(ground_truth_mask, np.logical_or(difftot_mask1, difftot_mask2).astype(np.uint8))
-    dices = np.array([dice, dice2, and_dice, or_dice])
-    max_idx = np.argmax(dices)
-    if max_idx == 0:
-        max_name = "Dice1"
-        max_iou = iou
-    elif max_idx == 1:
-        max_name = "Dice2"
-        max_iou = iou2
-    elif max_idx == 2:
-        max_name = "AND"
-        max_iou = iou_score(ground_truth_mask, np.logical_and(difftot_mask1, difftot_mask2).astype(np.uint8))
-    else:
-        max_name = "OR"
-        max_iou = iou_score(ground_truth_mask, np.logical_or(difftot_mask1, difftot_mask2).astype(np.uint8))
-    print(f"Max Dice: {max_name} = {dices[max_idx]:.4f}")
-    print(f"Max IoU: {max_name} = {max_iou:.4f}")
-    
-    plt.suptitle(f"Max Dice: {max_name} = {dices[max_idx]:.4f} | Max IoU: {max_iou:.4f}")
-    
-    
-    # Adjust layout and save the figure
+    # Save ground truth mask
+    plt.figure(figsize=(8, 8))
+    plt.imshow(ground_truth_mask, cmap='gray')
+    plt.axis('off')
     plt.tight_layout()
-    # if dices[max_idx] < 0.5 or dices[max_idx] > 0.85:
-    # if dices[max_idx] > 0.5 or dices[max_idx] < 0.3:
-    if not os.path.exists(save_dir):
-        os.makedirs(save_dir)
-    plt.savefig(os.path.join(save_dir, f'sample_{number}.png')) # _dice_{dice:.4f}_iou_{iou:.4f}
+    plt.savefig(os.path.join(sample_folder, 'gt_mask.png'), 
+                dpi=300, bbox_inches='tight', pad_inches=0)
     plt.close()
     
-    return dices[max_idx], max_iou
+    # Save predicted mask
+    plt.figure(figsize=(8, 8))
+    plt.imshow(predicted_mask[0], cmap='gray')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(os.path.join(sample_folder, 'predicted_mask.png'), 
+                dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+    
+    # Save anomaly map
+    anomaly_map = torch.mean(torch.abs(generated[0] - original[0]), dim=0).cpu().numpy()
+    plt.figure(figsize=(8, 8))
+    plt.imshow(anomaly_map, cmap='jet')
+    plt.axis('off')
+    plt.tight_layout()
+    plt.savefig(os.path.join(sample_folder, 'anomaly_map.png'), 
+                dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+    
+    # Save metrics file
+    iou = iou_score(ground_truth_mask, predicted_mask[0])
+    with open(os.path.join(sample_folder, 'metrics.txt'), 'w') as f:
+        f.write(f'Sample {number}\n')
+        f.write(f'Dice Score: {dice:.4f}\n')
+        f.write(f'IoU Score: {iou:.4f}\n')
+    
+    print(f"Sample {number} saved - Dice: {dice:.4f}, IoU: {iou:.4f}")
+    
+    return dice
 
 def visualize_and_save_grid(original, latents, ldm_generated, ldm_mask, 
                            vqvae_generated, vqvae_mask, ground_truth_mask, 
@@ -353,9 +372,9 @@ def main(cfg: DictConfig):
         classifier.eval()
     
     # Initialize VQ-VAE inference
-    logger.log("Loading VQ-VAE model...")
-    vqvae_inference = VQVAEInference(device)
-    vqvae_inference.load_vqvae_model(cfg)
+    # logger.log("Loading VQ-VAE model...")
+    # vqvae_inference = VQVAEInference(device)
+    # vqvae_inference.load_vqvae_model(cfg)
     
     logger.log("Starting sampling and evaluation...")
     all_ldm_dice_scores = []
@@ -366,6 +385,7 @@ def main(cfg: DictConfig):
     batch_size = cfg.data.batch_size
     num_samples = cfg.sampling.num_samples if hasattr(cfg.sampling, "num_samples") else -1
     save_dir = cfg.sampling.save_dir if hasattr(cfg.sampling, "save_dir") else "./samples"
+    os.makedirs(save_dir, exist_ok=True)
     noise_level = cfg.sampling.noise_level if hasattr(cfg.sampling, "noise_level") else 500
     
     if cfg.classifier.use_classifier:
@@ -374,10 +394,16 @@ def main(cfg: DictConfig):
         print("CLASSIFIER NOT USED")
         classifier_scale = 0.0
     
+    # Define target index ranges
+    target_ranges = [(100, 350), (800, 1500)]
+    saved_samples = 0
+    
     for idx, batch in enumerate(tqdm(test_loader, desc="Sampling")):
-        if idx >= 10:
-            break
-        
+        # Check if current index is in target ranges
+        in_target_range = idx == 300
+        if not in_target_range:
+            continue
+            
         img, cond, mask, label = batch
         if mask is not None:
             if hasattr(cfg.sampling, "skip_normal") and cfg.sampling.skip_normal and label == 0:
@@ -425,50 +451,42 @@ def main(cfg: DictConfig):
             
             ldm_results = best_sample_results
         
-        # VQ-VAE inference
-        vqvae_reconstructed, vqvae_mask = vqvae_inference.vqvae_inference(batch[0])
+        # Save individual images if dice > 0.75
+        dice = visualize_and_save(
+            ldm_results["original_images"],
+            ldm_results["generated_images"],
+            ldm_results["difftot_mask"],
+            mask,
+            idx,
+            save_dir,
+            dice_threshold=0.3
+        )
         
-        if vqvae_reconstructed is not None and vqvae_mask is not None:
-            # Create comparison grid
-            ldm_dice, ldm_iou, vqvae_dice, vqvae_iou = visualize_and_save_grid(
-                ldm_results["original_images"],
-                ldm_results["latents"],
-                ldm_results["generated_images"],
-                ldm_results["difftot_mask"],
-                vqvae_reconstructed,
-                vqvae_mask,
-                mask,
-                idx,
-                save_dir
-            )
-            
-            all_ldm_dice_scores.append(ldm_dice)
-            all_ldm_iou_scores.append(ldm_iou)
-            all_vqvae_dice_scores.append(vqvae_dice)
-            all_vqvae_iou_scores.append(vqvae_iou)
-            
-            logger.log(f"Sample {idx} - LDM Dice: {ldm_dice:.4f}, VQ-VAE Dice: {vqvae_dice:.4f}")
+        if dice > 0:
+            saved_samples += 1
+            all_ldm_dice_scores.append(dice)
+            logger.log(f"Sample {idx} saved - Dice: {dice:.4f} (Total saved: {saved_samples})")
         else:
-            logger.log(f"Sample {idx} - VQ-VAE inference failed, skipping")
+            logger.log(f"Sample {idx} skipped - Dice: {dice:.4f}")
     
     # Calculate and log mean scores
-    if all_ldm_dice_scores and all_vqvae_dice_scores:
+    if all_ldm_dice_scores:
         mean_ldm_dice = np.mean(all_ldm_dice_scores)
         mean_ldm_iou = np.mean(all_ldm_iou_scores)
-        mean_vqvae_dice = np.mean(all_vqvae_dice_scores)
-        mean_vqvae_iou = np.mean(all_vqvae_iou_scores)
+        # mean_vqvae_dice = np.mean(all_vqvae_dice_scores)
+        # mean_vqvae_iou = np.mean(all_vqvae_iou_scores)
         
         logger.log(f"Evaluation complete")
         logger.log(f"LDM - Mean Dice: {mean_ldm_dice:.4f}, Mean IoU: {mean_ldm_iou:.4f}")
-        logger.log(f"VQ-VAE - Mean Dice: {mean_vqvae_dice:.4f}, Mean IoU: {mean_vqvae_iou:.4f}")
+        # logger.log(f"VQ-VAE - Mean Dice: {mean_vqvae_dice:.4f}, Mean IoU: {mean_vqvae_iou:.4f}")
         
         # Save results to a text file
         with open(os.path.join(save_dir, "comparison_results.txt"), "w") as f:
             f.write(f"LDM - Mean Dice: {mean_ldm_dice:.4f}, Mean IoU: {mean_ldm_iou:.4f}\n")
-            f.write(f"VQ-VAE - Mean Dice: {mean_vqvae_dice:.4f}, Mean IoU: {mean_vqvae_iou:.4f}\n")
+            # f.write(f"VQ-VAE - Mean Dice: {mean_vqvae_dice:.4f}, Mean IoU: {mean_vqvae_iou:.4f}\n")
             f.write("\nIndividual scores:\n")
-            for i, (ldm_dice, ldm_iou, vqvae_dice, vqvae_iou) in enumerate(zip(all_ldm_dice_scores, all_ldm_iou_scores, all_vqvae_dice_scores, all_vqvae_iou_scores)):
-                f.write(f"Sample {i}: LDM Dice={ldm_dice:.4f}, IoU={ldm_iou:.4f} | VQ-VAE Dice={vqvae_dice:.4f}, IoU={vqvae_iou:.4f}\n")
+            for i, (ldm_dice, ldm_iou) in enumerate(zip(all_ldm_dice_scores, all_ldm_iou_scores)):
+                f.write(f"Sample {i}: LDM Dice={ldm_dice:.4f}, IoU={ldm_iou:.4f}\n")
     
     logger.log("All done!")
 
@@ -525,6 +543,7 @@ def compare_L():
     
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
+    os.makedirs(save_dir, exist_ok=True)
     
     # Classifier settings
     if hasattr(cfg, "classifier") and cfg.classifier.use_classifier:

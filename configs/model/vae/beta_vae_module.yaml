@@ -5,8 +5,8 @@ use_ema: true
 optimizer:
   _target_: torch.optim.AdamW
   _partial_: true
-  lr: 5e-5
-  weight_decay: 1e-5
+  lr: 1e-4
+  weight_decay: 1e-6
 
 scheduler:
   _target_: torch.optim.lr_scheduler.CosineAnnealingLR
@@ -14,13 +14,13 @@ scheduler:
   T_max: 50
   eta_min: 1e-6
 
-encoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/beta_vae/encoder.pth
-decoder_path: /data/hpc/qtung/gen-model-boilerplate/src/ckpt_s256/beta_vae/decoder.pth
+encoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/beta_vae/encoder.pth
+decoder_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_s256/beta_vae/decoder.pth
 
 net:
   _target_: src.models.vae.net.VanillaVAE
 
-  kld_weight: 0.0005 # al_img.shape[0]/ self.num_train_images
+  kld_weight: 0.00025 # al_img.shape[0]/ self.num_train_images
 
   encoder:
     _target_: src.models.components.up_down.Encoder

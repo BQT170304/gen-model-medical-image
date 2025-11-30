@@ -1,0 +1,18 @@
+
+defaults:
+  - data: lits
+
+data:
+  batch_size: 1
+  num_workers: 4
+  full_dataset: true  # Load both healthy and unhealthy data
+
+output_dir: /home/tqlong/qtung/gen-model-boilerplate/results/inference_lits
+num_samples: 10
+skip_normal: true  # Only process samples with tumors (skip label==0)
+noise_level: 200
+
+classifier_path: /home/tqlong/qtung/gen-model-boilerplate/src/ckpt_lits/classifier/classifier_ldm64_200step.pth
+classifier_scale: 100.0
+use_classifier: true
+compare_with_vqvae: false

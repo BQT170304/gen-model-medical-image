@@ -1,5 +1,6 @@
 _target_: src.models.diffusion.LatentDiffusionModule
 
+dataset: "brats"
 use_ema: true
 num_timesteps: 1000
 

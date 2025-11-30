@@ -230,11 +230,11 @@ class VAEModule(pl.LightningModule):
                 self.hparams.decoder_path
             )
             # dùng cho VQ-VAE
-            # if isinstance(self.net.vq_layer, nn.Module):
-            #     torch.save(
-            #         self.net.vq_layer.state_dict(), 
-            #         self.hparams.vq_layer_path
-            #     )
+            if self.hparams.vq_layer_path is not None:
+                torch.save(
+                    self.net.vq_layer.state_dict(), 
+                    self.hparams.vq_layer_path
+                )
 
     def test_step(self, batch: Tuple[Tensor, Tensor], batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set.
